@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cold Calling Bot Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .crm-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .crm-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .crm-info h3:before {
+            content: "👤";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .phone-number {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .call-section {
+            text-align: center;
+        }
+
+        .call-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 200px;
+        }
+
+        .call-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .call-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .call-button .loading {
+            display: none;
+        }
+
+        .call-button.loading .loading {
+            display: inline-block;
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        .call-button.loading .call-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .call-info {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .call-info.show {
+            display: block;
+        }
+
+        .call-info p {
+            margin: 5px 0;
+            color: #1565c0;
+        }
+
+        .call-sid {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            background: rgba(21, 101, 192, 0.1);
+            padding: 5px 8px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cold Calling Bot</h1>
+            <p>AI-powered sales calls to your CRM contacts</p>
+        </div>
+
+        <div class="crm-info">
+            <h3>Contact Information</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Name</span>
+                    <span class="info-value" id="contactName">John Doe</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Company</span>
+                    <span class="info-value" id="contactCompany">BrightHome Realty</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Phone</span>
+                    <span class="info-value phone-number" id="contactPhone">+380673356079</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Age</span>
+                    <span class="info-value" id="contactAge">33</span>
+                </div>
+            </div>
+            <div class="info-item" style="margin-top: 15px;">
+                <span class="info-label">Company Description</span>
+                <span class="info-value" id="contactDescription">A real estate agency helping clients buy, sell, and rent residential and commercial properties.</span>
+            </div>
+        </div>
+
+        <div class="call-section">
+            <button class="call-button" id="callButton" onclick="makeCall()">
+                <span class="loading">⟳</span>
+                <span class="call-text">📞 Start Cold Call</span>
+            </button>
+            
+            <div class="status" id="status"></div>
+            <div class="call-info" id="callInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        // CRM data from your backend
+        const crmData = {
+            id: 1,
+            full_name: "Liza Polozenko",
+            age: 33,
+            phone_number: "+380673350679",
+            company_name: "BrightHome Realty",
+            company_description: "A real estate agency helping clients buy, sell, and rent residential and commercial properties."
+        };
+
+        // Update UI with CRM data
+        function updateContactInfo() {
+            document.getElementById('contactName').textContent = crmData.full_name;
+            document.getElementById('contactCompany').textContent = crmData.company_name;
+            document.getElementById('contactPhone').textContent = crmData.phone_number;
+            document.getElementById('contactAge').textContent = crmData.age;
+            document.getElementById('contactDescription').textContent = crmData.company_description;
+        }
+
+        // Make call function
+        async function makeCall() {
+            const button = document.getElementById('callButton');
+            const status = document.getElementById('status');
+            const callInfo = document.getElementById('callInfo');
+            
+            // Reset status
+            status.className = 'status';
+            status.style.display = 'none';
+            callInfo.classList.remove('show');
+            
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/coldcalling/make-call', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ 
+                        to: crmData.phone_number,
+                        name: crmData.full_name,
+                        company: crmData.company_name,
+                        crm_id: crmData.id
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.call_sid) {
+                    // Success
+                    status.className = 'status success';
+                    status.innerHTML = '✅ Call initiated successfully!';
+                    status.style.display = 'block';
+                    
+                    // Show call info
+                    callInfo.innerHTML = `
+                        <p><strong>📞 Calling:</strong> ${crmData.full_name} (${crmData.phone_number})</p>
+                        <p><strong>🏢 Company:</strong> ${crmData.company_name}</p>
+                        <p><strong>📋 Call ID:</strong> <span class="call-sid">${data.call_sid}</span></p>
+                        <p><strong>⏰ Status:</strong> Call in progress...</p>
+                    `;
+                    callInfo.classList.add('show');
+                    
+                    // Update button text
+                    button.innerHTML = '<span class="call-text">✅ Call Started</span>';
+                    
+                } else {
+                    throw new Error(data.error || 'Failed to initiate call');
+                }
+
+            } catch (error) {
+                console.error('Error making call:', error);
+                status.className = 'status error';
+                status.innerHTML = `❌ Error: ${error.message}`;
+                status.style.display = 'block';
+                
+                // Reset button
+                button.innerHTML = '<span class="call-text">📞 Try Again</span>';
+            } finally {
+                // Remove loading state
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateContactInfo();
+            
+            // Optional: Load CRM data from API
+            // loadCRMData();
+        });
+
+        // Optional: Function to load CRM data from your backend
+        async function loadCRMData(clientId = 1) {
+            try {
+                const response = await fetch(`/api/crm/${clientId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    Object.assign(crmData, data);
+                    updateContactInfo();
+                }
+            } catch (error) {
+                console.log('Using default CRM data');
+            }
+        }
+    </script>
+</body>
+</html>

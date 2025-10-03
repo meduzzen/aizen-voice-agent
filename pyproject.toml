@@ -1,0 +1,56 @@
+[project]
+name = "ava"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "agent-builder>=0.1.7",
+    "audioop-lts>=0.2.2",
+    "chromadb>=1.0.19",
+    "elevenlabs>=2.11.0",
+    "fastapi>=0.116.1",
+    "langchain>=0.3.27",
+    "langchain-chroma>=0.2.5",
+    "langchain-community>=0.3.27",
+    "langchain-openai>=0.3.29",
+    "langgraph>=0.6.6",
+    "msal>=1.33.0",
+    "num2words>=0.5.14",
+    "openai>=1.99.3",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "pypdf>=6.0.0",
+    "python-docx>=1.2.0",
+    "python-multipart>=0.0.20",
+    "twilio>=9.7.0",
+    "unstructured>=0.18.13",
+    "uvicorn>=0.35.0",
+    "websockets>=15.0.1",
+]
+
+[tool.ruff]
+lint.select = ["B", "C", "E", "F", "W"]
+lint.ignore = ["E501", "E712", "B904", "C408", "F841", "B008", "C901", "B006", "B905", "B020"]
+lint.unfixable = ["B"]
+
+line-length = 140
+
+exclude = [
+    ".git",
+    "__pycache__",
+    ".env",
+    ".env.sample",
+    '.venv',
+    'venv',
+    '.idea',
+    '.vscode',
+    'versions/',
+    '__init__.py',
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F403", "F405"]
+
+[tool.isort]
+profile = "black"

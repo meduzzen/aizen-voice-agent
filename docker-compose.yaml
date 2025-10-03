@@ -1,0 +1,12 @@
+---
+services:
+  app:
+    image: aizen-app
+    build:
+      context: .
+    env_file:
+      - .env
+    container_name: aizen-api
+    ports:
+      - "${PORT}:${PORT}"
+    restart: unless-stopped
