@@ -13,10 +13,6 @@ class AppBaseConfig(BaseConfig):
     RELOAD: bool
     ALLOWED_ORIGINS: Annotated[list[str], NoDecode]
     WORKERS: int = Field(1, alias="UV_WORKERS")
-    COMPANY_NAME: str = Field(..., alias="COMPANY_NAME")
-    TRUST_ACCOUNT_NAME: str = Field(..., alias="TRUST_ACCOUNT_NAME")
-    BSB: str = Field(..., alias="BSB")
-    ACCOUNT_NUMBER: str = Field(..., alias="ACCOUNT_NUMBER")
     PUBLIC_HOST: str | None = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")

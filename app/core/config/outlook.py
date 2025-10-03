@@ -4,10 +4,10 @@ from app.core.config.base import BaseConfig
 
 
 class OutlookConfig(BaseConfig):
-    TENANT_ID: str = Field("", alias="OUTLOOK_TENANT_ID")
-    CLIENT_ID: str = Field("", alias="OUTLOOK_CLIENT_ID")
-    CLIENT_SECRET: str = Field("", alias="OUTLOOK_CLIENT_SECRET")
-    SENDER_UPN: str = Field("", alias="OUTLOOK_SENDER_UPN")
+    TENANT_ID: str = Field("*", alias="OUTLOOK_TENANT_ID")
+    CLIENT_ID: str = Field("*", alias="OUTLOOK_CLIENT_ID")
+    CLIENT_SECRET: str = Field("*", alias="OUTLOOK_CLIENT_SECRET")
+    SENDER_UPN: str = Field("*", alias="OUTLOOK_SENDER_UPN")
 
     AUTHORITY: str = Field(default="")
     SCOPE: str = Field(default="https://graph.microsoft.com/.default")

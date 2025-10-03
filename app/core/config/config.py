@@ -2,7 +2,6 @@ from app.core.config.ai import OpenAIConfig
 from app.core.config.app import AppBaseConfig
 from app.core.config.base import BaseConfig
 from app.core.config.elevenlabs import ElevenLabsConfig
-from app.core.config.n8n import N8NConfig
 from app.core.config.outlook import OutlookConfig
 from app.core.config.teams import TeamsConfig
 from app.core.config.twilio import TwilioConfig
@@ -21,7 +20,6 @@ class Settings(BaseConfig):
     open_ai: OpenAIConfig = OpenAIConfig()
     twilio: TwilioConfig = TwilioConfig()
     teams: TeamsConfig = TeamsConfig()
-    n8n: N8NConfig = N8NConfig()
     outlook: OutlookConfig = OutlookConfig()
     vector_bd: VectorDBBaseConfig = VectorDBBaseConfig()
     elevenlabs: ElevenLabsConfig = ElevenLabsConfig()
