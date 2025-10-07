@@ -63,8 +63,11 @@ class BaseBotService(AbstractBotService, LogMixin):
 
     async def handle_media_stream(self, ws: WebSocket) -> None:
         await ws.accept()
+        print("I'm Here")
         await self.initialize_config()
+        print("It's working")
         await self.initialize_init_messages()
+        print("Still worfing")
 
         async with websockets.connect(
             f"{settings.open_ai.WSS_REALTIME}{settings.open_ai.WSS_REALTIME_MODEL}",
