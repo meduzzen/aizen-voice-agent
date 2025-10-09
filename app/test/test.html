@@ -208,7 +208,7 @@
             status.style.display = 'none';
 
             try {
-                const response = await fetch('/salesbot/make-call', {
+                const response = await fetch('/web-bot/make-call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ to: phone, name: name })

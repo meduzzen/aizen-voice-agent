@@ -2,6 +2,7 @@ from app.core.config.ai import OpenAIConfig
 from app.core.config.app import AppBaseConfig
 from app.core.config.base import BaseConfig
 from app.core.config.elevenlabs import ElevenLabsConfig
+from app.core.config.gohighlevel import GoHighLevelConfig
 from app.core.config.outlook import OutlookConfig
 from app.core.config.twilio import TwilioConfig
 from app.core.config.vector_db import VectorDBBaseConfig
@@ -21,6 +22,7 @@ class Settings(BaseConfig):
     outlook: OutlookConfig = OutlookConfig()
     vector_bd: VectorDBBaseConfig = VectorDBBaseConfig()
     elevenlabs: ElevenLabsConfig = ElevenLabsConfig()
+    gohighlevel: GoHighLevelConfig = GoHighLevelConfig()
 
 
 settings = Settings()

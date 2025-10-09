@@ -1,8 +1,10 @@
-SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will make proper CRUDs for it
-    "Real Estate Agency": {
-        "states": ["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
-        "instructions": {
-            "opening": """
+from app.schemas.scenarios import Scenario, ScenarioInstructions, ScenarioTools, ScenarioTransitions
+
+SCENARIOS: dict[str, Scenario] = { 
+    "Real Estate Agency": Scenario(
+        states=["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
+        instructions=ScenarioInstructions(
+            opening="""
             Greet the prospect, introduce yourself as Aiden from Meduzzen.
             Ask if they have a minute for a couple of quick questions.
 
@@ -10,7 +12,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If NO (busy) -> ask for a better callback time.
             If skeptical about AI -> explain briefly that this is an AI assistant helping agencies, and it will only take 60 seconds.
             """,
-            "discovery": """
+            discovery="""
             Ask how the agency currently handles new buyer and tenant enquiries:
             do agents follow up directly or is there staff making calls?
             Ask 1-2 follow-up questions: number of weekly enquiries, response speed, no-show complaints, or biggest frustration.
@@ -18,7 +20,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If prospect shares a pain -> go to value_mapping.
             If prospect says 'we're fine' -> highlight potential missed deals and offer a solution overview.
             """,
-            "value_mapping": """
+            value_mapping="""
             Explain typical issues:
             - Leads wait hours or days before callbacks -> many go to competitors
             - Agents lose hours chasing callbacks instead of closing deals
@@ -30,14 +32,14 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             - Follow-up reminders to reduce no-shows
             Emphasize that agents can focus on closing deals and winning listings.
             """,
-            "closing": """
+            closing="""
             Offer a short email with a one-page overview and a link to a 15-minute demo with a human colleague.
 
             If YES -> send email, tag as 'Interested'.
             If MAYBE -> send email anyway for later review.
             If NO -> go to objection_handling.
             """,
-            "objection_handling": """
+            objection_handling="""
             Handle common objections:
             - 'Not interested' -> offer a short email without follow-ups
             - 'We already have staff' -> show a case study of how agents benefit
@@ -48,33 +50,33 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             - 'I don’t trust AI' -> offer a live demo to experience it
             - 'Call me later' -> ask for best callback time
             """,
-            "ending": """
+            ending="""
             Always exit respectfully, never push after a hard 'No'.
             Always send email if the prospect allows.
             Log outcome and notes in CRM.
             """,
-        },
-        "tools": {
-            "opening": [],
-            "discovery": [],
-            "value_mapping": [],
-            "closing": [],
-            "objection_handling": [],
-            "ending": [],
-        },
-        "transitions": {
-            "opening": ["discovery", "objection_handling"],
-            "discovery": ["value_mapping", "objection_handling"],
-            "value_mapping": ["closing"],
-            "closing": ["ending", "objection_handling"],
-            "objection_handling": ["closing", "ending"],
-            "ending": [],
-        },
-    },
-    "Law Firms": {
-        "states": ["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
-        "instructions": {
-            "opening": """
+        ),
+        tools=ScenarioTools(
+            opening=[],
+            discovery=[],
+            value_mapping=[],
+            closing=[],
+            objection_handling=[],
+            ending=[],
+        ),
+        transitions=ScenarioTransitions(
+            opening=["discovery", "objection_handling"],
+            discovery=["value_mapping", "objection_handling"],
+            value_mapping=["closing"],
+            closing=["ending", "objection_handling"],
+            objection_handling=["closing", "ending"],
+            ending=[],
+        ),
+    ),
+    "Law Firms": Scenario(
+        states=["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
+        instructions=ScenarioInstructions(
+            opening="""
             Greet the prospect, introduce yourself as Aiden from Meduzzen.
             Ask if they have one minute for a couple of quick questions.
 
@@ -82,7 +84,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If NO (busy) -> ask for a better callback time and log it.
             If skeptical about AI -> explain briefly that this is an AI assistant helping law firms with intake and scheduling, and it will only take 60 seconds.
             """,
-            "discovery": """
+            discovery="""
             Ask how the firm currently handles new client enquiries:
             do attorneys take calls directly or is there staff handling intake?
             Ask 1-2 follow-up questions: number of weekly intake calls, lost clients due to slow response, biggest frustration, after-hours enquiries.
@@ -90,7 +92,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If prospect shares a pain -> go to value_mapping.
             If prospect says 'we're fine' -> highlight potential missed clients and offer a solution overview.
             """,
-            "value_mapping": """
+            value_mapping="""
             Explain typical issues:
             - Staff spend hours answering basic questions
             - Attorneys lose billable hours rescheduling and following up
@@ -104,14 +106,14 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
 
             Emphasize attorneys focus on billable work, staff are freed from repetitive tasks, and the firm never misses a client.
             """,
-            "closing": """
+            closing="""
             Offer a short email with a one-page overview and link to a 15-minute demo with a human colleague.
 
             If YES -> send email, tag as 'Interested'.
             If MAYBE -> send email anyway for later review.
             If NO -> go to objection_handling.
             """,
-            "objection_handling": """
+            objection_handling="""
             Handle common objections:
             - 'Not interested' -> offer a short email without follow-ups
             - 'We already have staff' -> show case study and emphasize 24/7 coverage
@@ -122,33 +124,33 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             - 'I don’t trust AI' -> offer a live demo to experience it
             - 'Call me later' -> ask for best callback time
             """,
-            "ending": """
+            ending="""
             Always exit respectfully, never push after a hard 'No'.
             Always send email if the prospect allows.
             Log outcome and notes in CRM.
             """,
-        },
-        "tools": {
-            "opening": [],
-            "discovery": [],
-            "value_mapping": [],
-            "closing": [],
-            "objection_handling": [],
-            "ending": [],
-        },
-        "transitions": {
-            "opening": ["discovery", "objection_handling"],
-            "discovery": ["value_mapping", "objection_handling"],
-            "value_mapping": ["closing"],
-            "closing": ["ending", "objection_handling"],
-            "objection_handling": ["closing", "ending"],
-            "ending": [],
-        },
-    },
-    "Private Clinics & Hospitals": {
-        "states": ["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
-        "instructions": {
-            "opening": """
+        ),
+        tools=ScenarioTools(
+            opening=[],
+            discovery=[],
+            value_mapping=[],
+            closing=[],
+            objection_handling=[],
+            ending=[],
+        ),
+        transitions=ScenarioTransitions(
+            opening=["discovery", "objection_handling"],
+            discovery=["value_mapping", "objection_handling"],
+            value_mapping=["closing"],
+            closing=["ending", "objection_handling"],
+            objection_handling=["closing", "ending"],
+            ending=[],
+        ),
+    ),
+    "Private Clinics & Hospitals": Scenario(
+        states=["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
+        instructions=ScenarioInstructions(
+            opening="""
             Greet the prospect, introduce yourself as Aiden from Meduzzen.
             Ask if they have one minute for a couple of quick questions.
 
@@ -156,7 +158,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If NO (busy) -> ask for a better callback time and log it.
             If skeptical about AI -> explain briefly that this is an AI assistant helping clinics with patient calls, scheduling, confirmations, and follow-ups, and it will only take 60 seconds.
             """,
-            "discovery": """
+            discovery="""
             Ask how the clinic currently handles patient calls and appointment scheduling:
             do receptionists take calls directly or is there a team handling intake?
             Ask 1-2 follow-up questions: number of daily calls, patient frustration due to long hold times, no-shows, late cancellations, time spent on routine questions.
@@ -164,7 +166,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If prospect shares a pain -> go to value_mapping.
             If prospect says 'we're fine' -> highlight potential lost patients and offer a solution overview.
             """,
-            "value_mapping": """
+            value_mapping="""
             Explain typical issues:
             - Receptionists overwhelmed by many calls per week
             - Many calls are basic questions: hours, fees, services
@@ -180,14 +182,14 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
 
             Emphasize doctors and staff focus on patient care, not phone calls, and clinic never loses patients.
             """,
-            "closing": """
+            closing="""
             Offer a short email with a one-page overview and a link to a 15-minute demo with a human colleague.
 
             If YES -> send email, tag as 'Interested'.
             If MAYBE -> send email anyway for later review.
             If NO -> go to objection_handling.
             """,
-            "objection_handling": """
+           objection_handling="""
             Handle common objections:
             - 'Not interested' -> offer a short email without follow-ups
             - 'We already have receptionists' -> explain 24/7 coverage and freed staff time
@@ -198,33 +200,33 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             - 'I don’t trust AI / patients won’t like it' -> offer a live demo to experience it
             - 'Call me later' -> ask for best callback time
             """,
-            "ending": """
+            ending="""
             Always exit respectfully, never push after a hard 'No'.
             Always send email if prospect allows.
             Log outcome and notes in CRM.
             """,
-        },
-        "tools": {
-            "opening": [],
-            "discovery": [],
-            "value_mapping": [],
-            "closing": [],
-            "objection_handling": [],
-            "ending": [],
-        },
-        "transitions": {
-            "opening": ["discovery", "objection_handling"],
-            "discovery": ["value_mapping", "objection_handling"],
-            "value_mapping": ["closing"],
-            "closing": ["ending", "objection_handling"],
-            "objection_handling": ["closing", "ending"],
-            "ending": [],
-        },
-    },
-    "Universities & Colleges": {
-        "states": ["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
-        "instructions": {
-            "opening": """
+        ),
+        tools=ScenarioTools(
+            opening=[],
+            discovery=[],
+            value_mapping=[],
+            closing=[],
+            objection_handling=[],
+            ending=[],
+        ),
+        transitions=ScenarioTransitions(
+            opening=["discovery", "objection_handling"],
+            discovery=["value_mapping", "objection_handling"],
+            value_mapping=["closing"],
+            closing=["ending", "objection_handling"],
+            objection_handling=["closing", "ending"],
+            ending=[],
+        ),
+    ),
+    "Universities & Colleges": Scenario(
+        states=["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
+        instructions=ScenarioInstructions(
+            opening="""
             Greet the prospect, introduce yourself as Aiden from Meduzzen.
             Ask if they have one minute for a couple of quick questions.
 
@@ -232,7 +234,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If NO (busy) -> ask for a better callback time and log it.
             If skeptical about AI -> explain briefly that this is an AI assistant helping universities handle student enquiries, scheduling, and follow-ups, and it will only take 60 seconds.
             """,
-            "discovery": """
+            discovery="""
             Ask how the institution currently handles student enquiries and admissions calls:
             do they have a call center or staff handle them directly?
             Ask 1-2 follow-up questions: number of daily calls during peak, student complaints about wait times, biggest staff challenges, after-hours enquiries.
@@ -240,7 +242,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If prospect shares a pain -> go to value_mapping.
             If prospect says 'we're fine' -> highlight potential lost students and offer a solution overview.
             """,
-            "value_mapping": """
+            value_mapping="""
             Explain typical issues:
             - During admissions season, call volumes explode
             - Staff spend hours answering repetitive questions (deadlines, tuition, courses)
@@ -256,14 +258,14 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
 
             Emphasize staff focus on high-value student engagement, every enquiry answered, no student slips away.
             """,
-            "closing": """
+            closing="""
             Offer a short email with a one-page overview and a link to a 15-minute demo with a human colleague.
 
             If YES -> send email, tag as 'Interested'.
             If MAYBE -> send email anyway for later review.
             If NO -> go to objection_handling.
             """,
-            "objection_handling": """
+            objection_handling="""
             Handle common objections:
             - 'Not interested' -> offer a short email without follow-ups
             - 'We already have a call center' -> explain peak season overload and 24/7 coverage
@@ -274,33 +276,33 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             - 'I don’t trust AI / Students won’t like it' -> offer a live demo to experience it
             - 'Call me later' -> ask for best callback time
             """,
-            "ending": """
+            ending= """
             Always exit respectfully, never push after a hard 'No'.
             Always send email if prospect allows.
             Log outcome and notes in CRM.
             """,
-        },
-        "tools": {
-            "opening": [],
-            "discovery": [],
-            "value_mapping": [],
-            "closing": [],
-            "objection_handling": [],
-            "ending": [],
-        },
-        "transitions": {
-            "opening": ["discovery", "objection_handling"],
-            "discovery": ["value_mapping", "objection_handling"],
-            "value_mapping": ["closing"],
-            "closing": ["ending", "objection_handling"],
-            "objection_handling": ["closing", "ending"],
-            "ending": [],
-        },
-    },
-    "Insurance Agencies": {
-        "states": ["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
-        "instructions": {
-            "opening": """
+    ),
+        tools=ScenarioTools(
+            opening=[],
+            discovery=[],
+            value_mapping=[],
+            closing=[],
+            objection_handling=[],
+            ending=[],
+        ),
+        transitions=ScenarioTransitions(
+            opening=["discovery", "objection_handling"],
+            discovery=["value_mapping", "objection_handling"],
+            value_mapping=["closing"],
+            closing=["ending", "objection_handling"],
+            objection_handling=["closing", "ending"],
+            ending=[],
+        ),
+    ),
+    "Insurance Agencies": Scenario(
+        states=["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
+        instructions=ScenarioInstructions(
+            opening="""
             Greet the prospect, introduce yourself as Aiden from Meduzzen.
             Ask if they have one minute for a couple of quick questions.
 
@@ -308,7 +310,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If NO (busy) -> ask for a better callback time and log it.
             If skeptical about AI -> explain briefly that this is an AI assistant helping insurance agencies with client calls, lead follow-ups, and scheduling consultations, and it will only take 60 seconds.
             """,
-            "discovery": """
+            discovery="""
             Ask how the agency currently handles new enquiries:
             do agents take calls directly, or is there staff screening and scheduling first?
             Ask 1-2 follow-up questions: number of inbound calls per week, lost leads due to slow response, policy renewal and follow-ups, main reasons clients call (quotes, claims, policy changes).
@@ -316,7 +318,7 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             If prospect shares a pain -> go to value_mapping.
             If prospect says 'we're fine' -> highlight potential lost clients and offer a solution overview.
             """,
-            "value_mapping": """
+            value_mapping="""
             Explain typical issues:
             - Agents pulled from selling to answer routine questions: coverage, billing, renewal dates
             - Leads go cold if not called back instantly
@@ -332,14 +334,14 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
 
             Emphasize agents focus on selling and advising, agency never loses deals due to missed calls.
             """,
-            "closing": """
+            closing="""
             Offer a short email with a one-page overview and a link to a 15-minute demo with a human colleague.
 
             If YES -> send email, tag as 'Interested'.
             If MAYBE -> send email anyway for later review.
             If NO -> go to objection_handling.
             """,
-            "objection_handling": """
+            objection_handling="""
             Handle common objections:
             - 'Not interested' -> offer a short email without follow-ups
             - 'We already have staff handling calls' -> explain 24/7 coverage and freed agents
@@ -350,27 +352,27 @@ SCENARIOS = {  # TODO - make it as pydantic schema, maybe in the future we will 
             - 'I don’t trust AI / clients won’t like it' -> offer a live demo to experience it
             - 'Call me later' -> ask for best callback time
             """,
-            "ending": """
+            ending="""
             Always exit respectfully, never push after a hard 'No'.
             Always send email if prospect allows.
             Log outcome and notes in CRM.
             """,
-        },
-        "tools": {
-            "opening": [],
-            "discovery": [],
-            "value_mapping": [],
-            "closing": [],
-            "objection_handling": [],
-            "ending": [],
-        },
-        "transitions": {
-            "opening": ["discovery", "objection_handling"],
-            "discovery": ["value_mapping", "objection_handling"],
-            "value_mapping": ["closing"],
-            "closing": ["ending", "objection_handling"],
-            "objection_handling": ["closing", "ending"],
-            "ending": [],
-        },
-    },
+        ),
+        tools=ScenarioTools(
+            opening=[],
+            discovery=[],
+            value_mapping=[],
+            closing=[],
+            objection_handling=[],
+            ending=[],
+        ),
+        transitions=ScenarioTransitions(
+            opening=["discovery", "objection_handling"],
+            discovery=["value_mapping", "objection_handling"],
+            value_mapping=["closing"],
+            closing=["ending", "objection_handling"],
+            objection_handling=["closing", "ending"],
+            ending=[],
+        ),
+    ),
 }

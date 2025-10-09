@@ -23,6 +23,7 @@ dependencies = [
     "pypdf>=6.0.0",
     "python-docx>=1.2.0",
     "python-multipart>=0.0.20",
+    "pytz>=2025.2",
     "twilio>=9.7.0",
     "unstructured>=0.18.13",
     "uvicorn>=0.35.0",
