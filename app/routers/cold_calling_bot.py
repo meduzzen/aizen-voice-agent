@@ -20,7 +20,7 @@ async def outgoing_call(request: Request, twilio_service: TwilioServiceDep) -> H
 
 @router.get("/", response_class=HTMLResponse)
 async def call_interface():
-    return HTMLResponse(open(r"C:\WORK MEDUZZEN\voice\app\test\test2.html").read())
+    return HTMLResponse(open(r"C:\WORK MEDUZZEN\aizen-voice-agent\app\test\test2.html").read())
 
 
 @router.websocket("/media-stream")

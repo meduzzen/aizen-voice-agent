@@ -28,7 +28,7 @@ class TwilioService(LogMixin):
         client = Client(settings.twilio.TWILIO_ACCOUNT_SID, settings.twilio.TWILIO_AUTH_TOKEN)
 
         call = client.calls.create(
-            url=f"{settings.app.PUBLIC_HOST}/cold-calling/outgoing-call",
+            url=f"{settings.app.PUBLIC_HOST}/web-bot/outgoing-call",
             to=to_phone_number,
             from_=settings.twilio.TWILIO_NUMBER,
         )
@@ -43,7 +43,7 @@ class TwilioService(LogMixin):
         response.pause(length=1)
         response.say("O.K., now you and Aizen can talk to each other.", voice=settings.twilio.TWILIO_VOICE)
         connect = Connect()
-        connect.stream(url=f"wss://{request.url.hostname}/cold-calling/media-stream")
+        connect.stream(url=f"wss://{request.url.hostname}/web-bot/media-stream")
         response.append(connect)
         return HTMLResponse(content=str(response), media_type="application/xml")
 

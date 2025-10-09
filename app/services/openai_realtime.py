@@ -92,7 +92,7 @@ class OpenAIRealtimeService(LogMixin):
                     "item": {
                         "type": "message",
                         "role": "user",
-                        "content": self.init_messages,
+                        "content": self.init_messages
                     },
                 }
             )
@@ -101,22 +101,31 @@ class OpenAIRealtimeService(LogMixin):
 
     async def generate_audio_response(
         self,
-        stream_sid: str,
+        call_id: str,
         websocket: websockets.ClientConnection,
         response_text: str,
+        tool_name: str = None,
     ) -> None:
         response_message = {
             "type": "conversation.item.create",
             "item": {
                 "type": "function_call_output",
-                "call_id": stream_sid,
+                "call_id": call_id,
                 "output": response_text,
             },
         }
         await websocket.send(json.dumps(response_message))
 
-        instructions = Prompts.TOOL_RESULT_INSTRUCTION.format(response_text=response_text)
-        self.log(f"[TOOL PROCESSING] Generate audio response {stream_sid}: {instructions}")
+        if tool_name == "create_contact":
+            instructions = Prompts.CREATE_CONTACT_INSTRUCTION.format(response_text=response_text)
+        elif tool_name == "get_free_appointment_slots":
+            instructions = Prompts.GET_SLOTS_INSTRUCTION.format(response_text=response_text)
+        elif tool_name == "create_appointment":
+            instructions = Prompts.CREATE_APPOINTMENT_INSTRUCTION.format(response_text=response_text)
+        else:
+            instructions = Prompts.TOOL_RESULT_INSTRUCTION.format(response_text=response_text)
+        
+        self.log(f"[TOOL PROCESSING] Generate audio response {call_id}: {instructions}")
 
         response_create = {
             "type": "response.create",

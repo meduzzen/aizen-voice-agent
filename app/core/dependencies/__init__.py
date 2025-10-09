@@ -5,12 +5,14 @@ from app.core.dependencies.services import (
     OpenAIRealtimeDep,
     SummaryServiceDep,
     TwilioServiceDep,
+    GHLServiceDep,
 )
-from app.core.dependencies.tool import ToolServiceDep
+from app.core.dependencies.tool import ToolServiceSalesDep, ToolServiceColdCallingDep
 from app.core.dependencies.transcription import TranscriptionServiceDep
 
 __all__ = [
-    "ToolServiceDep",
+    "ToolServiceSalesDep",
+    "ToolServiceColdCallingDep",
     "TranscriptionServiceDep",
     "WebBotServiceDep",
     "ColdCallingBotServiceDep",
@@ -19,4 +21,5 @@ __all__ = [
     "SummaryServiceDep",
     "ElevenLabsServiceDep",
     "OpenAIRealtimeDep",
+    "GHLServiceDep",
 ]

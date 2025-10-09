@@ -12,21 +12,26 @@ from app.schemas.scenarios import ScenarioSchema
 from app.services.base_bot import BaseBotService
 
 # from app.services.elevenlabs import ElevenLabsService
+from app.services.gohighlevel import GoHighLevelClient
 from app.services.openai_realtime import OpenAIRealtimeService
+from app.services.summary import SummaryService
 from app.services.tool_service import ToolService
 from app.services.transcription import TranscriptionService
+from app.services.twilio_service import TwilioService
 
 
 class ColdCallingBotService(BaseBotService, LogMixin):
     def __init__(
         self,
-        twilio_service,
+        summary_service: SummaryService,
         transcription_service: TranscriptionService,
         openai_service: OpenAIRealtimeService,
         tool_service: ToolService,
+        twilio_service: TwilioService,
+        gohighlevel_service: GoHighLevelClient
         # elevenlabs_service: ElevenLabsService
     ) -> None:
-        super().__init__(transcription_service=transcription_service, openai_service=openai_service, tool_service=tool_service)
+        super().__init__(summary_service=summary_service, transcription_service=transcription_service, openai_service=openai_service, tool_service=tool_service, twilio_service=twilio_service, gohighlevel_service=gohighlevel_service)
         self.llm = ChatOpenAI(
             model=settings.open_ai.CHAT_MODEL,
             temperature=settings.open_ai.TEMPERATURE,
@@ -59,7 +64,7 @@ class ColdCallingBotService(BaseBotService, LogMixin):
         scenario = await self.choose_scenario(crm_data)
 
         session_config = SessionConfig(
-            instructions=Prompts.SYSTEM_PROMPT.format(scenario=scenario),
+            instructions=Prompts.SYSTEM_PROMPT.format(conversational_states="",scenario=scenario),
             tools=[Tool(**tool) for tool in TOOLS_SALESBOT],
         )
 

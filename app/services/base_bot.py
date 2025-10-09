@@ -10,12 +10,16 @@ from fastapi import WebSocket, WebSocketDisconnect
 from app.core.config.config import settings
 from app.core.config.prompts import Prompts
 from app.core.mixins import LogMixin
-from app.schemas.config import InitMessage, InitMessages, SessionConfig
+from app.schemas.config import SessionConfig
 from app.schemas.events import EventType, OpenAIEvents
+from app.schemas.gohighlevel.contact import CustomFieldSchema
 from app.schemas.summary import Speaker
 from app.services.openai_realtime import OpenAIRealtimeService
+from app.services.summary import SummaryService
 from app.services.tool_service import ToolService
 from app.services.transcription import TranscriptionService
+from app.services.gohighlevel import GoHighLevelClient
+from app.services.twilio_service import TwilioService
 
 
 class AbstractBotService(ABC):
@@ -27,26 +31,32 @@ class AbstractBotService(ABC):
     async def initialize_init_messages(self) -> None:
         pass
 
-    @abstractmethod
-    async def handle_media_stream(self, ws: WebSocket) -> None:
-        pass
+    # @abstractmethod
+    # async def handle_media_stream(self, ws: WebSocket) -> None:
+    #     pass
 
 
 class BaseBotService(AbstractBotService, LogMixin):
     def __init__(
         self,
+        summary_service: SummaryService,
         transcription_service: TranscriptionService,
         openai_service: OpenAIRealtimeService,
         tool_service: ToolService,
+        twilio_service: TwilioService,
+        gohighlevel_service: GoHighLevelClient
     ) -> None:
         super().__init__()
         self.session_id = uuid.uuid4()
         self.stream_sid = None
         self.last_assistant_item = None
 
+        self.summary_service = summary_service
         self.transcription_service = transcription_service
         self.openai_service = openai_service
         self.tool_service = tool_service
+        self.twilio_service = twilio_service
+        self.gohighlevel_service = gohighlevel_service
 
     async def initialize_config(self) -> None:
         session_config = SessionConfig(
@@ -55,30 +65,43 @@ class BaseBotService(AbstractBotService, LogMixin):
         )
         self.openai_service.update_session_config(session_config)
 
-    async def initialize_init_messages(self) -> None:
-        messages = [{"text": Prompts.INIT_MESSAGE}]
-        messages = InitMessages(messages=[InitMessage(**message) for message in messages])
-
-        self.openai_service.update_init_messages(messages)
-
     async def handle_media_stream(self, ws: WebSocket) -> None:
         await ws.accept()
         print("I'm Here")
         await self.initialize_config()
         print("It's working")
         await self.initialize_init_messages()
-        print("Still worfing")
+        print("Still working")
 
         async with websockets.connect(
             f"{settings.open_ai.WSS_REALTIME}{settings.open_ai.WSS_REALTIME_MODEL}",
             additional_headers=settings.open_ai.realtime_headers,
         ) as openai_ws:
-            await self.openai_service.send_session_update(websocket=openai_ws)
-            await self.openai_service.send_initial_message(websocket=openai_ws)
-            await asyncio.gather(
-                self._send_to_websocket(openai_ws, ws=ws),
-                self._receive_from_websocket(openai_ws, ws=ws),
-            )
+            try:
+                await self.openai_service.send_session_update(websocket=openai_ws)
+                await self.openai_service.send_initial_message(websocket=openai_ws)
+                await asyncio.gather(
+                    self._send_to_websocket(openai_ws, ws=ws),
+                    self._receive_from_websocket(openai_ws, ws=ws),
+                )
+            finally:
+                messages = self.summary_service.get_full_transcript(self.session_id)
+                transcript_text = "\n".join([f"{m.type}: {m.content}" for m in messages])
+
+                custom_fields = [
+                    CustomFieldSchema(
+                        id=settings.gohighlevel.CUSTOM_FIELDS_ID,
+                        key=settings.gohighlevel.CUSTOM_FIELDS_KEY,
+                        field_value=transcript_text
+                    )
+                ]
+
+                await self.gohighlevel_service.update_contact(customFields=custom_fields)
+
+                with suppress(RuntimeError):
+                    await ws.send_text("Session finished")
+                with suppress(RuntimeError):
+                    await ws.close()
 
     async def proceed_user_interruption(self, openai_ws: websockets.ClientConnection, ws: WebSocket) -> None:
         if self.last_assistant_item:
@@ -102,13 +125,15 @@ class BaseBotService(AbstractBotService, LogMixin):
 
     async def execute_tool(self, data: dict, openai_ws: websockets.ClientConnection) -> None:
         tool_name = data.get("name")
+        call_id = data.get("call_id")
         arguments = json.loads(data.get("arguments"))
 
         self.log(f"[TOOL EXECUTION] Executing the tool: {tool_name} with arguments: {arguments}")
 
         result = await self.tool_service.tool_mapping[tool_name](**arguments)
         if result:
-            await self.openai_service.generate_audio_response(self.stream_sid, openai_ws, result)
+            await self.openai_service.generate_audio_response(call_id=call_id, websocket=openai_ws, response_text=str(result), tool_name=tool_name
+        )
 
     async def _send_to_websocket(self, openai_ws: websockets.ClientConnection, ws: WebSocket) -> None:
         try:
@@ -146,8 +171,10 @@ class BaseBotService(AbstractBotService, LogMixin):
 
     def parsing_start_data(self, start_data: dict) -> None:
         self.stream_sid = start_data.get("streamSid")
-        self.log(f"[TWILIO] Stream START. streamSid={self.stream_sid}")
-
+        self.call_sid = start_data.get("callSid")
+        self.log(f"[TWILIO] Stream START. streamSid={self.stream_sid} callSid={self.call_sid}")
+        self.twilio_service.get_caller_number(call_sid=self.call_sid)
+        
     def reset_stream(self, data: dict) -> None:
         self.parsing_start_data(data["start"])
         self.last_assistant_item = None
