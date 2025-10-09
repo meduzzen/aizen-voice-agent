@@ -12,13 +12,12 @@ from app.core.config.prompts import Prompts
 from app.core.mixins import LogMixin
 from app.schemas.config import SessionConfig
 from app.schemas.events import EventType, OpenAIEvents
-from app.schemas.gohighlevel.contact import CustomFieldSchema
 from app.schemas.summary import Speaker
+from app.services.gohighlevel.client import GoHighLevelClient
 from app.services.openai_realtime import OpenAIRealtimeService
 from app.services.summary import SummaryService
 from app.services.tool_service import ToolService
 from app.services.transcription import TranscriptionService
-from app.services.gohighlevel import GoHighLevelClient
 from app.services.twilio_service import TwilioService
 
 
@@ -67,11 +66,8 @@ class BaseBotService(AbstractBotService, LogMixin):
 
     async def handle_media_stream(self, ws: WebSocket) -> None:
         await ws.accept()
-        print("I'm Here")
         await self.initialize_config()
-        print("It's working")
         await self.initialize_init_messages()
-        print("Still working")
 
         async with websockets.connect(
             f"{settings.open_ai.WSS_REALTIME}{settings.open_ai.WSS_REALTIME_MODEL}",
@@ -85,19 +81,8 @@ class BaseBotService(AbstractBotService, LogMixin):
                     self._receive_from_websocket(openai_ws, ws=ws),
                 )
             finally:
-                messages = self.summary_service.get_full_transcript(self.session_id)
-                transcript_text = "\n".join([f"{m.type}: {m.content}" for m in messages])
-
-                custom_fields = [
-                    CustomFieldSchema(
-                        id=settings.gohighlevel.CUSTOM_FIELDS_ID,
-                        key=settings.gohighlevel.CUSTOM_FIELDS_KEY,
-                        field_value=transcript_text
-                    )
-                ]
-
-                await self.gohighlevel_service.update_contact(customFields=custom_fields)
-
+                await self.gohighlevel_service.update_contact_custom_fields(self.session_id)
+                
                 with suppress(RuntimeError):
                     await ws.send_text("Session finished")
                 with suppress(RuntimeError):
@@ -125,15 +110,13 @@ class BaseBotService(AbstractBotService, LogMixin):
 
     async def execute_tool(self, data: dict, openai_ws: websockets.ClientConnection) -> None:
         tool_name = data.get("name")
-        call_id = data.get("call_id")
         arguments = json.loads(data.get("arguments"))
 
         self.log(f"[TOOL EXECUTION] Executing the tool: {tool_name} with arguments: {arguments}")
 
         result = await self.tool_service.tool_mapping[tool_name](**arguments)
         if result:
-            await self.openai_service.generate_audio_response(call_id=call_id, websocket=openai_ws, response_text=str(result), tool_name=tool_name
-        )
+            await self.openai_service.generate_audio_response(self.stream_sid, openai_ws, result, tool_name=tool_name)
 
     async def _send_to_websocket(self, openai_ws: websockets.ClientConnection, ws: WebSocket) -> None:
         try:
@@ -171,9 +154,7 @@ class BaseBotService(AbstractBotService, LogMixin):
 
     def parsing_start_data(self, start_data: dict) -> None:
         self.stream_sid = start_data.get("streamSid")
-        self.call_sid = start_data.get("callSid")
-        self.log(f"[TWILIO] Stream START. streamSid={self.stream_sid} callSid={self.call_sid}")
-        self.twilio_service.get_caller_number(call_sid=self.call_sid)
+        self.log(f"[TWILIO] Stream START. streamSid={self.stream_sid}")
         
     def reset_stream(self, data: dict) -> None:
         self.parsing_start_data(data["start"])

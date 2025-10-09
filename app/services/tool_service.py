@@ -3,9 +3,10 @@ from typing import Callable
 from langchain_openai import ChatOpenAI
 
 from app.core import settings
+from app.core.config.enums import GoHighLevel
 from app.core.mixins import LogMixin
 from app.schemas.gohighlevel.contact import ContactDetail, CustomFieldSchema
-from app.services.gohighlevel import GoHighLevelClient
+from app.services.gohighlevel.client import GoHighLevelClient
 from app.services.knowledge_base import KnowledgeBaseService
 from app.services.twilio_service import TwilioService
 
@@ -50,12 +51,12 @@ class ToolService(LogMixin):
     async def redirect_to_manager(self, call_sid: str, *args, **kwargs) -> None:
         return await self.twilio_service.redirect_to_manager(call_sid=call_sid)
     
-    async def create_contact(self, firstName: str, lastName: str, phone: str, companyName: str, tags: list[str] = ["From AIZen"], customFields: list[CustomFieldSchema] | None = None,
+    async def create_contact(self, firstName: str, lastName: str, phone: str, companyName: str, tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN], customFields: list[CustomFieldSchema] | None = None,
     ) -> ContactDetail:
         return await self.gohighlevel_service.create_contact(firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields)
 
     async def update_contact_info(
-        self, contact_id: str, firstName: str | None = None, lastName: str | None = None, phone: str | None = None, companyName: str | None = None, tags: list[str] | None = None,
+        self, contact_id: str, firstName: str | None = None, lastName: str | None = None, phone: str | None = None, companyName: str | None = None, tags: list[GoHighLevel] | None = None,
         customFields: list[CustomFieldSchema] | None = None,
     ):
         return await self.gohighlevel_service.update_contact(contact_id, firstName, lastName, phone, companyName, tags, customFields)
@@ -65,4 +66,3 @@ class ToolService(LogMixin):
 
     async def create_appointment(self, startTime: str, **kwargs):
         return await self.gohighlevel_service.create_appointment(startTime)
-

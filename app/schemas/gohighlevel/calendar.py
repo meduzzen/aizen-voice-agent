@@ -2,12 +2,7 @@ from typing import Annotated
 from datetime import datetime
 
 from pydantic import BaseModel, RootModel, BeforeValidator
-
-
-def convert_iso_to_unix(value: str):
-    dt = datetime.fromisoformat(value)
-    unix_time_ms = int(dt.timestamp() * 1000)
-    return unix_time_ms
+from app.utils.iso_to_unix import convert_iso_to_unix
 
 
 class DateSlots(BaseModel):

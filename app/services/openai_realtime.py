@@ -91,7 +91,7 @@ class OpenAIRealtimeService(LogMixin):
                     "type": "conversation.item.create",
                     "item": {
                         "type": "message",
-                        "role": "user",
+                        "role": "assistant",
                         "content": self.init_messages
                     },
                 }
@@ -101,7 +101,7 @@ class OpenAIRealtimeService(LogMixin):
 
     async def generate_audio_response(
         self,
-        call_id: str,
+        stream_id: str,
         websocket: websockets.ClientConnection,
         response_text: str,
         tool_name: str = None,
@@ -110,22 +110,25 @@ class OpenAIRealtimeService(LogMixin):
             "type": "conversation.item.create",
             "item": {
                 "type": "function_call_output",
-                "call_id": call_id,
+                "call_id": stream_id,
                 "output": response_text,
             },
         }
         await websocket.send(json.dumps(response_message))
 
-        if tool_name == "create_contact":
-            instructions = Prompts.CREATE_CONTACT_INSTRUCTION.format(response_text=response_text)
-        elif tool_name == "get_free_appointment_slots":
-            instructions = Prompts.GET_SLOTS_INSTRUCTION.format(response_text=response_text)
-        elif tool_name == "create_appointment":
-            instructions = Prompts.CREATE_APPOINTMENT_INSTRUCTION.format(response_text=response_text)
-        else:
-            instructions = Prompts.TOOL_RESULT_INSTRUCTION.format(response_text=response_text)
+        tool_mapping = {
+            "create_contact": Prompts.CREATE_CONTACT_INSTRUCTION,
+            "get_free_appointment_slots": Prompts.GET_SLOTS_INSTRUCTION,
+            "create_appointment": Prompts.CREATE_APPOINTMENT_INSTRUCTION,
+        }
         
-        self.log(f"[TOOL PROCESSING] Generate audio response {call_id}: {instructions}")
+        instructions_template = tool_mapping.get(
+            tool_name,
+            Prompts.TOOL_RESULT_INSTRUCTION
+        )
+        instructions = instructions_template.format(response_text=response_text)
+        
+        self.log(f"[TOOL PROCESSING] Generate audio response {stream_id}: {instructions}")
 
         response_create = {
             "type": "response.create",

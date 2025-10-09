@@ -1,4 +1,4 @@
-from multiprocessing.connection import Client
+from pathlib import Path
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from app.core.config.config import settings
@@ -21,8 +21,11 @@ async def outgoing_call(request: Request, twilio_service: TwilioServiceDep) -> H
 
 @router.get("/", response_class=HTMLResponse)
 async def call_interface():
-    return HTMLResponse(open(r"C:\WORK MEDUZZEN\aizen-voice-agent\app\test\test.html").read())
+    file_path = Path(__file__).parent.parent / "test" / "test.html"
+    if not file_path.exists():
+        return HTMLResponse(f"<h1>File not found: {file_path}</h1>", status_code=404)
 
+    return HTMLResponse(file_path.read_text(encoding="utf-8"))
 
 @router.websocket("/media-stream")
 async def handle_media_stream(

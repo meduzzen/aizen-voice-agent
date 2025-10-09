@@ -12,7 +12,7 @@ from app.schemas.scenarios import ScenarioSchema
 from app.services.base_bot import BaseBotService
 
 # from app.services.elevenlabs import ElevenLabsService
-from app.services.gohighlevel import GoHighLevelClient
+from app.services.gohighlevel.client import GoHighLevelClient
 from app.services.openai_realtime import OpenAIRealtimeService
 from app.services.summary import SummaryService
 from app.services.tool_service import ToolService
@@ -44,11 +44,11 @@ class ColdCallingBotService(BaseBotService, LogMixin):
         # self.elevenlabs_service = elevenlabs_service #TODO: uncomment if need to turn on ElevenLabs TTS
         self.twilio_service = twilio_service
 
-    async def choose_scenario(self, crm_data: dict) -> str:
+    async def choose_scenario(self, crm_data: GetClientSchema) -> str:
         prompt = Prompts.SCENARIO_SELECTION_PROMPT.format(
-            full_name=crm_data["full_name"],
-            company_name=crm_data["company_name"],
-            company_description=crm_data["company_description"],
+            full_name=crm_data.full_name,
+            company_name=crm_data.company_name,
+            company_description=crm_data.company_description,
         )
 
         result = await self.structured_llm.ainvoke(prompt)
@@ -57,6 +57,7 @@ class ColdCallingBotService(BaseBotService, LogMixin):
         chosen_scenario = SCENARIOS[scenario_name]
         return chosen_scenario
 
+
     async def initialize_config(self, crm_data: dict = None) -> None:
         if crm_data is None:
             crm_data = GetClientSchema(**mocked_user)
@@ -64,16 +65,17 @@ class ColdCallingBotService(BaseBotService, LogMixin):
         scenario = await self.choose_scenario(crm_data)
 
         session_config = SessionConfig(
-            instructions=Prompts.SYSTEM_PROMPT.format(conversational_states="",scenario=scenario),
+            instructions=Prompts.SYSTEM_PROMPT.format(chosen_message="", chosen_question="", conversational_states="",scenario=scenario),
             tools=[Tool(**tool) for tool in TOOLS_SALESBOT],
         )
 
         self.openai_service.update_session_config(session_config)
 
-    async def initialize_init_messages(self, crm_data: dict = None) -> None:
+    async def initialize_init_messages(self, crm_data: GetClientSchema = None) -> None:
         if crm_data is None:
             crm_data = GetClientSchema(**mocked_user)
-        messages = [{"text": Prompts.COLD_BOT_INIT_MASSAGE.format(full_name=crm_data["full_name"])}]
+
+        messages = [{"text": Prompts.COLD_BOT_INIT_MASSAGE.format(full_name=crm_data.full_name)}]
         messages = InitMessages(messages=[InitMessage(**message) for message in messages])
 
         self.openai_service.update_init_messages(messages)
