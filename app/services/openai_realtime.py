@@ -89,11 +89,7 @@ class OpenAIRealtimeService(LogMixin):
             json.dumps(
                 {
                     "type": "conversation.item.create",
-                    "item": {
-                        "type": "message",
-                        "role": "assistant",
-                        "content": self.init_messages
-                    },
+                    "item": {"type": "message", "role": "assistant", "content": self.init_messages},
                 }
             )
         )
@@ -121,13 +117,10 @@ class OpenAIRealtimeService(LogMixin):
             "get_free_appointment_slots": Prompts.GET_SLOTS_INSTRUCTION,
             "create_appointment": Prompts.CREATE_APPOINTMENT_INSTRUCTION,
         }
-        
-        instructions_template = tool_mapping.get(
-            tool_name,
-            Prompts.TOOL_RESULT_INSTRUCTION
-        )
+
+        instructions_template = tool_mapping.get(tool_name, Prompts.TOOL_RESULT_INSTRUCTION)
         instructions = instructions_template.format(response_text=response_text)
-        
+
         self.log(f"[TOOL PROCESSING] Generate audio response {stream_id}: {instructions}")
 
         response_create = {

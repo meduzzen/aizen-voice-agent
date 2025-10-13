@@ -1,13 +1,13 @@
 from app.core.dependencies.bot import ColdCallingBotServiceDep, WebBotServiceDep
 from app.core.dependencies.services import (
     ElevenLabsServiceDep,
+    GHLServiceDep,
     KnowledgeBaseServiceDep,
     OpenAIRealtimeDep,
     SummaryServiceDep,
     TwilioServiceDep,
-    GHLServiceDep,
 )
-from app.core.dependencies.tool import ToolServiceSalesDep, ToolServiceColdCallingDep
+from app.core.dependencies.tool import ToolServiceColdCallingDep, ToolServiceSalesDep
 from app.core.dependencies.transcription import TranscriptionServiceDep
 
 __all__ = [

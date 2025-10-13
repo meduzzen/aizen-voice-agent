@@ -1,6 +1,11 @@
-from app.schemas.scenarios import Scenario, ScenarioInstructions, ScenarioTools, ScenarioTransitions
+from app.schemas.scenarios import (
+    Scenario,
+    ScenarioInstructions,
+    ScenarioTools,
+    ScenarioTransitions,
+)
 
-SCENARIOS: dict[str, Scenario] = { 
+SCENARIOS: dict[str, Scenario] = {
     "Real Estate Agency": Scenario(
         states=["opening", "discovery", "value_mapping", "closing", "objection_handling", "ending"],
         instructions=ScenarioInstructions(
@@ -189,7 +194,7 @@ SCENARIOS: dict[str, Scenario] = {
             If MAYBE -> send email anyway for later review.
             If NO -> go to objection_handling.
             """,
-           objection_handling="""
+            objection_handling="""
             Handle common objections:
             - 'Not interested' -> offer a short email without follow-ups
             - 'We already have receptionists' -> explain 24/7 coverage and freed staff time
@@ -276,12 +281,12 @@ SCENARIOS: dict[str, Scenario] = {
             - 'I don’t trust AI / Students won’t like it' -> offer a live demo to experience it
             - 'Call me later' -> ask for best callback time
             """,
-            ending= """
+            ending="""
             Always exit respectfully, never push after a hard 'No'.
             Always send email if prospect allows.
             Log outcome and notes in CRM.
             """,
-    ),
+        ),
         tools=ScenarioTools(
             opening=[],
             discovery=[],

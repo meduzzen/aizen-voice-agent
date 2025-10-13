@@ -8,8 +8,8 @@ INIT_MESSAGES = [
     "Welcome, I'm Aizen, the voice of Meduzzen. I've got answers, shortcuts, and a direct line to our humans.",
     "Hi there, Aizen here. Think of me as your AI insider at Meduzzen. I can help you learn more, explore options, or get connected with the right person.",
     "Hey, I'm Aizen. If Meduzzen had a front desk, I'd be standing behind it — minus the suit.",
-    "Hi, you've reached Aizen — Meduzzen's AI voice assistant. I'm here to help you find exactly what you need, fast."
-    ]
+    "Hi, you've reached Aizen — Meduzzen's AI voice assistant. I'm here to help you find exactly what you need, fast.",
+]
 
 FOLLOW_UP_QUESTIONS_VARIATIONS = [
     "Are you more interested in services, tech, or something else?",
@@ -21,5 +21,5 @@ FOLLOW_UP_QUESTIONS_VARIATIONS = [
     "Do you want me to connect you with the team right away?",
     "Want me to give you the quick overview or go straight to booking a call?",
     "Looking for answers or inspiration today?",
-    "Would you like to talk tech, services, or next steps?"
+    "Would you like to talk tech, services, or next steps?",
 ]

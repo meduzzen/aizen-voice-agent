@@ -21,32 +21,19 @@ TOOLS_SALESBOT = [
         "parameters": {
             "type": "object",
             "properties": {
-                "firstName": {
-                    "type": "string", 
-                    "description": "First name of the contact."
-                },
-                "lastName": {
-                    "type": "string", 
-                    "description": "Last name of the contact."
-                },
-                "phone": {
-                    "type": "string", 
-                    "description": "Phone number of the contact."
-                },
+                "firstName": {"type": "string", "description": "First name of the contact."},
+                "lastName": {"type": "string", "description": "Last name of the contact."},
+                "phone": {"type": "string", "description": "Phone number of the contact."},
                 "companyName": {
-                    "type": "string", 
-                    "description": "Company name of the contact. Should also contain a brief description of the company."
+                    "type": "string",
+                    "description": "Company name of the contact. Should also contain a brief description of the company.",
                 },
-                "tags": {
-                    "type": "array",
-                    "description": "Tags for contact. Default value is ['From AIZen']",
-                    "items": {"type": "string"}
-                }
+                "tags": {"type": "array", "description": "Tags for contact. Default value is ['From AIZen']", "items": {"type": "string"}},
             },
             "additionalProperties": False,
-            "required": ["firstName", "lastName", "phone", "companyName"]
+            "required": ["firstName", "lastName", "phone", "companyName"],
         },
-        "strict": True
+        "strict": True,
     },
     {
         "name": "update_contact_info",
@@ -58,12 +45,11 @@ TOOLS_SALESBOT = [
                 "firstName": {"type": "string", "description": "Updated first name of the contact."},
                 "lastName": {"type": "string", "description": "Updated last name of the contact."},
                 "phone": {"type": "string", "description": "Updated phone number of the contact."},
-                "companyName": {"type": "string", "description": "Updated company name of the contact. Also updated a brief description of the company."},
-                "tags": {
-                    "type": "array",
-                    "description": "Updated tags for contact.",
-                    "items": {"type": "string"}
+                "companyName": {
+                    "type": "string",
+                    "description": "Updated company name of the contact. Also updated a brief description of the company.",
                 },
+                "tags": {"type": "array", "description": "Updated tags for contact.", "items": {"type": "string"}},
                 "customFields": {
                     "type": "array",
                     "description": "Updated list of custom fields for this contact. Usually used to update the transcript text.",
@@ -72,16 +58,19 @@ TOOLS_SALESBOT = [
                         "properties": {
                             "id": {"type": "string", "description": "Unique ID of the custom field."},
                             "key": {"type": "string", "description": "Updated custom field key"},
-                            "field_value": {"type": "string", "description": "New value for this custom field, e.g. the conversation transcript."}
+                            "field_value": {
+                                "type": "string",
+                                "description": "New value for this custom field, e.g. the conversation transcript.",
+                            },
                         },
-                        "required": ["id", "key", "field_value"]
-                    }
-                }
+                        "required": ["id", "key", "field_value"],
+                    },
+                },
             },
             "additionalProperties": False,
-            "required": ["contact_id"]
+            "required": ["contact_id"],
         },
-        "strict": True
+        "strict": True,
     },
     {
         "name": "get_free_appointment_slots",
@@ -121,7 +110,10 @@ TOOLS_SALESBOT = [
                 "contactId": {"type": "string", "description": "The contact ID."},
                 "startTime": {"type": "string", "description": "Updated start time (ISO format)."},
                 "endTime": {"type": "string", "description": "Updated end time (ISO format)."},
-                "title": {"type": "string", "description": "Updated title of appointment. Should be named as 'Client's name + [Scheduled by Sales Bot]'"}
+                "title": {
+                    "type": "string",
+                    "description": "Updated title of appointment. Should be named as 'Client's name + [Scheduled by Sales Bot]'",
+                },
             },
             "additionalProperties": False,
             "required": ["appointment_id", "calendarId", "contactId"],

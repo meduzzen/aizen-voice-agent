@@ -43,7 +43,7 @@ class BaseBotService(AbstractBotService, LogMixin):
         openai_service: OpenAIRealtimeService,
         tool_service: ToolService,
         twilio_service: TwilioService,
-        gohighlevel_service: GoHighLevelClient
+        gohighlevel_service: GoHighLevelClient,
     ) -> None:
         super().__init__()
         self.session_id = uuid.uuid4()
@@ -82,7 +82,7 @@ class BaseBotService(AbstractBotService, LogMixin):
                 )
             finally:
                 await self.gohighlevel_service.update_contact_custom_fields(self.session_id)
-                
+
                 with suppress(RuntimeError):
                     await ws.send_text("Session finished")
                 with suppress(RuntimeError):
@@ -155,7 +155,7 @@ class BaseBotService(AbstractBotService, LogMixin):
     def parsing_start_data(self, start_data: dict) -> None:
         self.stream_sid = start_data.get("streamSid")
         self.log(f"[TWILIO] Stream START. streamSid={self.stream_sid}")
-        
+
     def reset_stream(self, data: dict) -> None:
         self.parsing_start_data(data["start"])
         self.last_assistant_item = None

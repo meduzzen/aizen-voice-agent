@@ -1,13 +1,15 @@
 from pathlib import Path
+
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse
-from app.core.config.config import settings
+
 from app.core.config.enums import Methods
 from app.core.dependencies import WebBotServiceDep
 from app.core.dependencies.services import TwilioServiceDep
 from app.schemas.twilio import OutgoingParamsSchema
 
 router = APIRouter(prefix="/web-bot", tags=["Web Bot"])
+
 
 @router.post("/make-call", response_model=OutgoingParamsSchema)
 async def make_call(request: Request, twilio_service: TwilioServiceDep) -> OutgoingParamsSchema:
@@ -26,6 +28,7 @@ async def call_interface():
         return HTMLResponse(f"<h1>File not found: {file_path}</h1>", status_code=404)
 
     return HTMLResponse(file_path.read_text(encoding="utf-8"))
+
 
 @router.websocket("/media-stream")
 async def handle_media_stream(

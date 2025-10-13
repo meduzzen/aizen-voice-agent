@@ -2,12 +2,16 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from app.core.dependencies.services import OpenAIRealtimeDep, TwilioServiceDep, GHLServiceDep, SummaryServiceDep
-from app.core.dependencies.tool import ToolServiceSalesDep, ToolServiceColdCallingDep
+from app.core.dependencies.services import (
+    GHLServiceDep,
+    OpenAIRealtimeDep,
+    SummaryServiceDep,
+    TwilioServiceDep,
+)
+from app.core.dependencies.tool import ToolServiceColdCallingDep, ToolServiceSalesDep
 from app.core.dependencies.transcription import TranscriptionServiceDep
 from app.services.cold_calling_bot import ColdCallingBotService
 from app.services.web_bot import WebBotService
-
 
 
 async def get_cold_calling_bot_service(

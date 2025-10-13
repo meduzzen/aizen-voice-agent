@@ -50,19 +50,34 @@ class ToolService(LogMixin):
 
     async def redirect_to_manager(self, call_sid: str, *args, **kwargs) -> None:
         return await self.twilio_service.redirect_to_manager(call_sid=call_sid)
-    
-    async def create_contact(self, firstName: str, lastName: str, phone: str, companyName: str, tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN], customFields: list[CustomFieldSchema] | None = None,
+
+    async def create_contact(
+        self,
+        firstName: str,
+        lastName: str,
+        phone: str,
+        companyName: str,
+        tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN],
+        customFields: list[CustomFieldSchema] | None = None,
     ) -> ContactDetail:
-        return await self.gohighlevel_service.create_contact(firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields)
+        return await self.gohighlevel_service.create_contact(
+            firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields
+        )
 
     async def update_contact_info(
-        self, contact_id: str, firstName: str | None = None, lastName: str | None = None, phone: str | None = None, companyName: str | None = None, tags: list[GoHighLevel] | None = None,
+        self,
+        contact_id: str,
+        firstName: str | None = None,
+        lastName: str | None = None,
+        phone: str | None = None,
+        companyName: str | None = None,
+        tags: list[GoHighLevel] | None = None,
         customFields: list[CustomFieldSchema] | None = None,
     ):
         return await self.gohighlevel_service.update_contact(contact_id, firstName, lastName, phone, companyName, tags, customFields)
 
     async def get_free_appointment_slots(self, startDate: str, endDate: str):
-            return await self.gohighlevel_service.get_free_slots(startDate, endDate)
+        return await self.gohighlevel_service.get_free_slots(startDate, endDate)
 
     async def create_appointment(self, startTime: str, **kwargs):
         return await self.gohighlevel_service.create_appointment(startTime)
