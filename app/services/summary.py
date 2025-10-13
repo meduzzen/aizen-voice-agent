@@ -15,6 +15,9 @@ class SummaryService(LogMixin):
         self.call_transcription: dict[UUID, list[MessageSchema]] = {}
         self.llm = self.get_llm()
 
+    def get_full_transcript(self, session_id: UUID) -> list[MessageSchema]:
+        return self.call_transcription.get(session_id, [])
+
     def add_message(self, session_id: UUID, message: str, speaker: Speaker) -> None:
         if session_id in self.call_transcription:
             self.call_transcription[session_id].append(MessageSchema(type=speaker, content=message))

@@ -3,7 +3,10 @@ from typing import Callable
 from langchain_openai import ChatOpenAI
 
 from app.core import settings
+from app.core.config.enums import GoHighLevel
 from app.core.mixins import LogMixin
+from app.schemas.gohighlevel.contact import ContactDetail, CustomFieldSchema
+from app.services.gohighlevel.client import GoHighLevelClient
 from app.services.knowledge_base import KnowledgeBaseService
 from app.services.twilio_service import TwilioService
 
@@ -13,11 +16,13 @@ class ToolService(LogMixin):
         self,
         twilio_service: TwilioService,
         knowledge_base_service: KnowledgeBaseService,
+        gohighlevel_service: GoHighLevelClient,
         enabled_tools: list[str] | None = None,
     ) -> None:
         self.llm = ChatOpenAI(api_key=settings.open_ai.OPENAI_API_KEY, model=settings.open_ai.CHAT_MODEL)
         self.twilio_service = twilio_service
         self.knowledge_base_service = knowledge_base_service
+        self.gohighlevel_service = gohighlevel_service
         self.enabled_tools = enabled_tools or [
             "get_service_details",
             "finish_the_call",
@@ -30,6 +35,10 @@ class ToolService(LogMixin):
             "get_service_details": self.get_service_details,
             "finish_the_call": self.finish_the_call,
             "redirect_to_manager": self.redirect_to_manager,
+            "create_contact": self.create_contact,
+            "update_contact_info": self.update_contact_info,
+            "get_free_appointment_slots": self.get_free_appointment_slots,
+            "create_appointment": self.create_appointment,
         }
         return {k: v for k, v in mapping.items() if k in self.enabled_tools}
 
@@ -41,3 +50,34 @@ class ToolService(LogMixin):
 
     async def redirect_to_manager(self, call_sid: str, *args, **kwargs) -> None:
         return await self.twilio_service.redirect_to_manager(call_sid=call_sid)
+
+    async def create_contact(
+        self,
+        firstName: str,
+        lastName: str,
+        phone: str,
+        companyName: str,
+        tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN],
+        customFields: list[CustomFieldSchema] | None = None,
+    ) -> ContactDetail:
+        return await self.gohighlevel_service.create_contact(
+            firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields
+        )
+
+    async def update_contact_info(
+        self,
+        contact_id: str,
+        firstName: str | None = None,
+        lastName: str | None = None,
+        phone: str | None = None,
+        companyName: str | None = None,
+        tags: list[GoHighLevel] | None = None,
+        customFields: list[CustomFieldSchema] | None = None,
+    ):
+        return await self.gohighlevel_service.update_contact(contact_id, firstName, lastName, phone, companyName, tags, customFields)
+
+    async def get_free_appointment_slots(self, startDate: str, endDate: str):
+        return await self.gohighlevel_service.get_free_slots(startDate, endDate)
+
+    async def create_appointment(self, startTime: str, **kwargs):
+        return await self.gohighlevel_service.create_appointment(startTime)

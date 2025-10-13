@@ -244,7 +244,7 @@
             id: 1,
             full_name: "Liza Polozenko",
             age: 33,
-            phone_number: "+380673350679",
+            phone_number: "+12544544861",
             company_name: "BrightHome Realty",
             company_description: "A real estate agency helping clients buy, sell, and rent residential and commercial properties."
         };
@@ -274,7 +274,7 @@
             button.disabled = true;
 
             try {
-                const response = await fetch('/coldcalling/make-call', {
+                const response = await fetch('/cold-calling/make-call', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json' 
