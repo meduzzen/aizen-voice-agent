@@ -42,7 +42,6 @@ class BaseBotService(AbstractBotService, LogMixin):
         transcription_service: TranscriptionService,
         openai_service: OpenAIRealtimeService,
         tool_service: ToolService,
-        twilio_service: TwilioService,
         gohighlevel_service: GoHighLevelClient,
     ) -> None:
         super().__init__()
@@ -54,7 +53,6 @@ class BaseBotService(AbstractBotService, LogMixin):
         self.transcription_service = transcription_service
         self.openai_service = openai_service
         self.tool_service = tool_service
-        self.twilio_service = twilio_service
         self.gohighlevel_service = gohighlevel_service
 
     async def initialize_config(self) -> None:

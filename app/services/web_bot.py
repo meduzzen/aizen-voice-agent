@@ -22,16 +22,15 @@ class WebBotService(BaseBotService, LogMixin):
         transcription_service: TranscriptionService,
         openai_service: OpenAIRealtimeService,
         tool_service: ToolService,
-        twilio_service: TwilioService,
         gohighlevel_service: GoHighLevelClient,
     ) -> None:
-        super().__init__(summary_service, transcription_service, openai_service, tool_service, twilio_service, gohighlevel_service)
+        super().__init__(summary_service, transcription_service, openai_service, tool_service, gohighlevel_service)
         self.chosen_message = random.choice(INIT_MESSAGES)
         self.chosen_question = random.choice(FOLLOW_UP_QUESTIONS_VARIATIONS)
 
     async def initialize_config(self) -> None:
         self.log(f"Chosen init message: {self.chosen_message}")
-        self.log(f"chosen question: {self.chosen_question}")
+        self.log(f"Chosen question: {self.chosen_question}")
         session_config = SessionConfig(
             instructions=Prompts.SYSTEM_PROMPT.format(
                 chosen_message=self.chosen_message,

@@ -37,7 +37,6 @@ async def get_web_bot_service(
     transcription_service: TranscriptionServiceDep,
     openai_service: OpenAIRealtimeDep,
     tool_service: ToolServiceSalesDep,
-    twilio_service: TwilioServiceDep,
     gohighlevel_service: GHLServiceDep,
 ) -> WebBotService:
     return WebBotService(
@@ -45,7 +44,6 @@ async def get_web_bot_service(
         transcription_service=transcription_service,
         openai_service=openai_service,
         tool_service=tool_service,
-        twilio_service=twilio_service,
         gohighlevel_service=gohighlevel_service,
     )
 
