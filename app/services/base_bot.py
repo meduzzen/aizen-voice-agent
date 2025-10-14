@@ -81,7 +81,13 @@ class BaseBotService(AbstractBotService, LogMixin):
                     self._receive_from_websocket(openai_ws, ws=ws),
                 )
             finally:
-                await self.gohighlevel_service.update_contact_custom_fields(self.session_id)
+                if self.gohighlevel_service.contact_id is not None:
+                    try:
+                        await self.gohighlevel_service.update_contact_custom_fields(self.session_id)
+                    except Exception as e:
+                        self.log(f"Failed to update contact {self.gohighlevel_service.contact_id}: {str(e)}")
+                else:
+                    self.log("No contact was created during this session. Skipping transcript update.")
                 
                 with suppress(RuntimeError):
                     await ws.send_text("Session finished")

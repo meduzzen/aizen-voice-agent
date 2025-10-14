@@ -31,18 +31,32 @@ class Contact(GoHighLevelService):
 
         if status_code >= 400:
             self.log(
-                f"[ERROR] Failed to create contact: {response_json}", error=True)
-            return None
-
+                f"Failed to create contact ({status_code}): {response_json}")
+            
+            is_duplicate = False
+            existing_contact_id = None
+            
+            if isinstance(response_json, dict):
+                error_message = response_json.get("message", "").lower()
+                if "does not allow duplicated contacts" in error_message or "duplicate" in error_message:
+                    is_duplicate = True
+                    meta = response_json.get("meta", {})
+                    existing_contact_id = meta.get("contactId")
+                    self.log(f"Contact with {phone} already exists (id: {existing_contact_id})")
+            
+            return {
+                "is_duplicate": is_duplicate,
+                "existing_contact_id": existing_contact_id,
+            }
+            
         contact_info = response_json.get("contact", {})
-        self.log(f"[CONTACT] Parsed contact info: {contact_info}")
-
-        if not contact_info:
-            self.log("[ERROR] Empty contact data in GHL response", error=True)
-            return None
+        self.log(f"Contact info: {contact_info}")
 
         contact_model = ContactDetail(**contact_info).model_dump()
-        return contact_model
+        return {
+            "is_duplicate": False,
+            "contact_id": contact_model.get("contact_id"),
+        }
     
     async def update_contact(
         self,
