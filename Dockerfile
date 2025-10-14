@@ -35,4 +35,4 @@ ENV PATH="/app/venv/bin:$PATH"
 
 EXPOSE 8000
 
-RUN ["uv", "run", "python", "-m", "app.main"]
+CMD ["uv", "run", "python", "-m", "app.main"]
