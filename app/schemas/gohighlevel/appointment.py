@@ -32,4 +32,3 @@ class AppointmentUpdate(BaseModel):
 
 class AppointmentDetails(BaseModel):
     appointmentId: str = Field(..., alias="id")
-    

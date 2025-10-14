@@ -1,5 +1,11 @@
 from app.core.config.config import settings
-from app.schemas.gohighlevel.calendar import AvailableSlots, CalendarCreate, CalendarInfo, CalendarsResponse, DateSlots
+from app.schemas.gohighlevel.calendar import (
+    AvailableSlots,
+    CalendarCreate,
+    CalendarInfo,
+    CalendarsResponse,
+    DateSlots,
+)
 from app.services.gohighlevel.gohighlevel import GoHighLevelService
 
 
@@ -30,11 +36,9 @@ class Calendar(GoHighLevelService):
         available_slots = AvailableSlots(root={k: DateSlots(slots=v["slots"]) for k, v in filtered_slots.items()})
         return available_slots.model_dump()
 
-
     @staticmethod
     def get_first_slot(available_slots: AvailableSlots) -> str | None:
-        for date, date_slots in available_slots.root.items():
+        for _, date_slots in available_slots.root.items():
             if date_slots.slots:
                 return date_slots.slots[0]
         return None
-    

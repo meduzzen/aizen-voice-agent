@@ -1,4 +1,8 @@
-from app.schemas.conversational_states import ConversationFlow, ConversationalState, Transition
+from app.schemas.conversational_states import (
+    ConversationalState,
+    ConversationFlow,
+    Transition,
+)
 
 CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
     states=[
@@ -8,21 +12,13 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
             instructions=[
                 "Politely ask, 'Before we continue, I'd love to know your first name to set things up for you.'",
                 "Do NOT verify or spell back the name; just accept it.",
-                "If the response is unrecognizable, politely ask again until a valid first name is received."
+                "If the response is unrecognizable, politely ask again until a valid first name is received.",
             ],
-            examples=[
-                "Before we continue, I'd love to know your first name to set things up for you."
-            ],
+            examples=["Before we continue, I'd love to know your first name to set things up for you."],
             transitions=[
-                Transition(
-                    next_step="2_get_last_name",
-                    condition="Once a valid first name is obtained."
-                ),
-                Transition(
-                    next_step="1_get_first_name",
-                    condition="If invalid, or unclear input."
-                )
-            ]
+                Transition(next_step="2_get_last_name", condition="Once a valid first name is obtained."),
+                Transition(next_step="1_get_first_name", condition="If invalid, or unclear input."),
+            ],
         ),
         ConversationalState(
             id="2_get_last_name",
@@ -30,21 +26,13 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
             instructions=[
                 "Politely ask, 'Thank you! And may I have your last name as well?'",
                 "Do NOT verify or spell back the name; just accept it.",
-                "If the response is unrecognizable, politely ask again until a valid last name is received."
+                "If the response is unrecognizable, politely ask again until a valid last name is received.",
             ],
-            examples=[
-                "Thank you! And may I have your last name as well?"
-            ],
+            examples=["Thank you! And may I have your last name as well?"],
             transitions=[
-                Transition(
-                    next_step="3_get_and_verify_phone",
-                    condition="Once a valid last name is obtained."
-                ),
-                Transition(
-                    next_step="2_get_last_name",
-                    condition="If invalid or unclear input."
-                )
-            ]
+                Transition(next_step="3_get_and_verify_phone", condition="Once a valid last name is obtained."),
+                Transition(next_step="2_get_last_name", condition="If invalid or unclear input."),
+            ],
         ),
         ConversationalState(
             id="3_get_and_verify_phone",
@@ -55,24 +43,18 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "If the user says 'no' or indicates the number is incorrect, politely ask them to repeat the number.",
                 "Always repeat the most recent number provided by the user, not any previous attempts.",
                 "Continue this loop until the user confirms the number is correct.",
-                "Do not proceed until a valid phone number is confirmed."
+                "Do not proceed until a valid phone number is confirmed.",
             ],
             examples=[
                 "May I have your phone number in full international format, including the country code? For example: +380XXXXXXXXX.",
                 "You said +380-67-123-4567, correct?",
                 "User: No, that's not correct.",
-                "You said +380-67-765-4321, correct?"
+                "You said +380-67-765-4321, correct?",
             ],
             transitions=[
-                Transition(
-                    next_step="4_get_company_name",
-                    condition="Once a valid phone number is confirmed."
-                ),
-                Transition(
-                    next_step="3_get_and_verify_phone",
-                    condition="If invalid, unclear, or rejected by the user."
-                )
-            ]
+                Transition(next_step="4_get_company_name", condition="Once a valid phone number is confirmed."),
+                Transition(next_step="3_get_and_verify_phone", condition="If invalid, unclear, or rejected by the user."),
+            ],
         ),
         ConversationalState(
             id="4_get_company_name",
@@ -88,25 +70,22 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "  1. Summarize into format: 'CompanyName - brief description' (max 10 words for description)",
                 "  2. IMMEDIATELY CALL `create_contact` tool with the summarized companyName",
                 "  3. After contact is created, ALWAYS say: 'Perfect, thank you! Would you like to schedule an appointment?'",
-                "  4. DO NOT END - immediately transition to state 5_get_appointment"
+                "  4. DO NOT END - immediately transition to state 5_get_appointment",
                 "  5. If the contact already exists, tell the user and go to the next state."
             ],
             examples=[
                 "Could you please share your company name and briefly describe what your company does?",
                 "What's your company name and what does your company do?",
-                "After receiving: 'Perfect, thank you! Would you like to schedule an appointment?'"
+                "After receiving: 'Perfect, thank you! Would you like to schedule an appointment?'",
                 "If the contact already exists: 'Oh, it looks like you're already in our database, happy to see you again! Would you like to schedule a call with our team to discuss your project in detail?'"
             ],
             transitions=[
                 Transition(
                     next_step="5_get_appointment",
-                    condition="ALWAYS move to this state after contact is successfully created. This is MANDATORY."
+                    condition="ALWAYS move to this state after contact is successfully created. This is MANDATORY.",
                 ),
-                Transition(
-                    next_step="4_get_company_name",
-                    condition="If invalid or empty company name input - ask again."
-                )
-            ]
+                Transition(next_step="4_get_company_name", condition="If invalid or empty company name input - ask again."),
+            ],
         ),
         ConversationalState(
             id="5_get_appointment",
@@ -127,24 +106,24 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "  1. Acknowledge politely: 'No problem! Feel free to reach out whenever you're ready.'",
                 "  2. Offer alternative: 'Our team will contact you soon to follow up.'",
                 "If their response is unclear, gently ask for clarification.",
-                "After handling their response (yes or no), you may end the conversation naturally or ask if they have any other questions."
+                "After handling their response (yes or no), you may end the conversation naturally or ask if they have any other questions.",
             ],
             examples=[
                 "Would you like to schedule a call with our team to discuss your project in detail?",
                 "If yes: Great! Let me check our available slots... Here are some options: [show slots]. Which time works best for you?",
                 "If slot unavailable: Oh, it looks like that time was just taken! Here are the new available times: [show updated slots].",
-                "If no: No problem! Our team will reach out to you soon. Is there anything else I can help you with today?"
+                "If no: No problem! Our team will reach out to you soon. Is there anything else I can help you with today?",
             ],
             transitions=[
                 Transition(
                     next_step=None,
-                    condition="After appointment is created OR user declines the appointment offer. Conversation can naturally conclude."
+                    condition="After appointment is created OR user declines the appointment offer. Conversation can naturally conclude.",
                 ),
                 Transition(
                     next_step="5_get_appointment",
-                    condition="If the user's response about appointment preferences is unclear - ask again for clarification."
-                )
-            ]
-        )
+                    condition="If the user's response about appointment preferences is unclear - ask again for clarification.",
+                ),
+            ],
+        ),
     ]
 )

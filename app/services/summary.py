@@ -14,7 +14,7 @@ class SummaryService(LogMixin):
     def __init__(self):
         self.call_transcription: dict[UUID, list[MessageSchema]] = {}
         self.llm = self.get_llm()
-        
+
     def get_full_transcript(self, session_id: UUID) -> list[MessageSchema]:
         return self.call_transcription.get(session_id, [])
 

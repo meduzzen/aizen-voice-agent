@@ -42,8 +42,7 @@ class BaseBotService(AbstractBotService, LogMixin):
         transcription_service: TranscriptionService,
         openai_service: OpenAIRealtimeService,
         tool_service: ToolService,
-        twilio_service: TwilioService,
-        gohighlevel_service: GoHighLevelClient
+        gohighlevel_service: GoHighLevelClient,
     ) -> None:
         super().__init__()
         self.session_id = uuid.uuid4()
@@ -54,7 +53,6 @@ class BaseBotService(AbstractBotService, LogMixin):
         self.transcription_service = transcription_service
         self.openai_service = openai_service
         self.tool_service = tool_service
-        self.twilio_service = twilio_service
         self.gohighlevel_service = gohighlevel_service
 
     async def initialize_config(self) -> None:
@@ -88,7 +86,7 @@ class BaseBotService(AbstractBotService, LogMixin):
                         self.log(f"Failed to update contact {self.gohighlevel_service.contact_id}: {str(e)}")
                 else:
                     self.log("No contact was created during this session. Skipping transcript update.")
-                
+
                 with suppress(RuntimeError):
                     await ws.send_text("Session finished")
                 with suppress(RuntimeError):
@@ -161,7 +159,7 @@ class BaseBotService(AbstractBotService, LogMixin):
     def parsing_start_data(self, start_data: dict) -> None:
         self.stream_sid = start_data.get("streamSid")
         self.log(f"[TWILIO] Stream START. streamSid={self.stream_sid}")
-        
+
     def reset_stream(self, data: dict) -> None:
         self.parsing_start_data(data["start"])
         self.last_assistant_item = None

@@ -1,6 +1,11 @@
 from app.core.config.config import settings
 from app.core.config.enums import GoHighLevel
-from app.schemas.gohighlevel.contact import ContactBase, ContactDetail, ContactUpdate, CustomFieldSchema
+from app.schemas.gohighlevel.contact import (
+    ContactBase,
+    ContactDetail,
+    ContactUpdate,
+    CustomFieldSchema,
+)
 from app.services.gohighlevel.gohighlevel import GoHighLevelService
 
 
@@ -8,18 +13,27 @@ class Contact(GoHighLevelService):
     def __init__(self):
         super().__init__()
 
-    async def create_contact(self, firstName: str, lastName: str, phone: str, companyName: str, tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN], customFields: list[CustomFieldSchema] | None = None):
+    async def create_contact(
+        self,
+        firstName: str,
+        lastName: str,
+        phone: str,
+        companyName: str,
+        tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN],
+        customFields: list[CustomFieldSchema] | None = None,
+    ):
         if customFields is None:
             customFields = [
                 CustomFieldSchema(
                     id=settings.gohighlevel.CUSTOM_FIELDS_ID,
                     key=settings.gohighlevel.CUSTOM_FIELDS_KEY,
-                    field_value="Conversation will be added here after the call ends."
+                    field_value="Conversation will be added here after the call ends.",
                 )
             ]
 
-        payload = ContactBase(firstName=firstName, lastName=lastName, phone=phone, companyName=companyName,
-                              tags=tags, customFields=customFields).model_dump(by_alias=True, exclude_none=True)
+        payload = ContactBase(
+            firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields
+        ).model_dump(by_alias=True, exclude_none=True)
 
         payload["locationId"] = settings.gohighlevel.LOCATION_ID
 
@@ -30,8 +44,7 @@ class Contact(GoHighLevelService):
         self.log(f"[CONTACT] Create response ({status_code}): {text[:1000]}")
 
         if status_code >= 400:
-            self.log(
-                f"Failed to create contact ({status_code}): {response_json}")
+            self.log(f"Failed to create contact ({status_code}): {response_json}")
             
             is_duplicate = False
             existing_contact_id = None
@@ -57,7 +70,7 @@ class Contact(GoHighLevelService):
             "is_duplicate": False,
             "contact_id": contact_model.get("contact_id"),
         }
-    
+
     async def update_contact(
         self,
         contact_id: str,
@@ -66,20 +79,14 @@ class Contact(GoHighLevelService):
         phone: str | None = None,
         companyName: str | None = None,
         tags: list[GoHighLevel] | None = None,
-        customFields: list[CustomFieldSchema] | None = None
-        ):       
+        customFields: list[CustomFieldSchema] | None = None,
+    ):
         payload = ContactUpdate(
-            firstName=firstName,
-            lastName=lastName,
-            phone=phone,
-            companyName=companyName,
-            tags=tags,
-            customFields=customFields
-            ).model_dump(exclude_none=True)
+            firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields
+        ).model_dump(exclude_none=True)
         data = await self.send_request("PUT", f"/contacts/{contact_id}", payload, self.headers)
         self.log(f"Contact updated: {data}")
 
     async def delete_contact(self, contact_id: str):
         data = await self.send_request("DELETE", f"/contacts/{contact_id}", headers=self.headers)
         self.log(f"Contact deleted: {data}")
-        

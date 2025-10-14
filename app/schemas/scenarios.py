@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 class ScenarioSchema(BaseModel):
     scenario_name: str = Field("Name of the scenario")
 
+
 class ScenarioInstructions(BaseModel):
     opening: str
     discovery: str
@@ -11,7 +12,8 @@ class ScenarioInstructions(BaseModel):
     closing: str
     objection_handling: str
     ending: str
-    
+
+
 class ScenarioTools(BaseModel):
     opening: list[str]
     discovery: list[str]
@@ -19,7 +21,7 @@ class ScenarioTools(BaseModel):
     closing: list[str]
     objection_handling: list[str]
     ending: list[str]
-    
+
 
 class ScenarioTransitions(BaseModel):
     opening: list[str]
@@ -28,11 +30,10 @@ class ScenarioTransitions(BaseModel):
     closing: list[str]
     objection_handling: list[str]
     ending: list[str]
-    
-    
+
+
 class Scenario(BaseModel):
     states: list[str]
     instructions: ScenarioInstructions
     tools: ScenarioTools
     transitions: ScenarioTransitions
-    

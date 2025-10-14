@@ -1,7 +1,7 @@
 from typing import Annotated
-from datetime import datetime
 
-from pydantic import BaseModel, RootModel, BeforeValidator
+from pydantic import BaseModel, BeforeValidator, RootModel
+
 from app.utils.iso_to_unix import convert_iso_to_unix
 
 
@@ -29,6 +29,7 @@ class OpenHour(BaseModel):
 class OpenHours(BaseModel):
     daysOfTheWeek: list[int]
     hours: list[OpenHour] = []
+
 
 class TeamMember(BaseModel):
     userId: str

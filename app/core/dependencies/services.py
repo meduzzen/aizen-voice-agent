@@ -18,6 +18,7 @@ SummaryServiceDep = Annotated[SummaryService, Depends(SummaryService)]
 ElevenLabsServiceDep = Annotated[ElevenLabsService, Depends(ElevenLabsService)]
 OpenAIRealtimeDep = Annotated[OpenAIRealtimeService, Depends(OpenAIRealtimeService)]
 
+
 async def get_gohighlevel_service(
     summary_service: SummaryServiceDep,
 ) -> GoHighLevelClient:
@@ -27,5 +28,6 @@ async def get_gohighlevel_service(
         calendar_service=Calendar(),
         summary_service=summary_service,
     )
+
 
 GHLServiceDep = Annotated[GoHighLevelClient, Depends(get_gohighlevel_service)]
