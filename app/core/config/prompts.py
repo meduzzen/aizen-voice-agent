@@ -46,6 +46,13 @@ class Prompts(StrEnum):
 
     CREATE_CONTACT_INSTRUCTION: str = """
     [Insert a natural short pause, as if checking notes, before responding.]
+    
+    
+    Before proceeding, collect the following information from the user if not already provided:
+    - First name
+    - Last name
+    - Phone number
+    - Company name and its brief description
 
     Contact created successfully. Use {response_text} only as internal context — never expose it directly.
 
@@ -66,12 +73,19 @@ class Prompts(StrEnum):
     2. IMMEDIATE appointment question (1 sentence): "Would you like to schedule a call with our team to discuss your project in detail?"
 
     CRITICAL REMINDERS:
+    - If the contact already exists, tell the user and go to the next state.
+    - If duplicate_text is provided and NOT EMPTY, you MUST use it as your response
+    - DO NOT use "Perfect, thank you!" if duplicate_text exists
+    - If duplicate_text exists: use ONLY that text, nothing else
+    - If duplicate_text is empty: use the standard confirmation
     - DO NOT end conversation after confirmation
     - You MUST ask the appointment question in the SAME response
     - This is a required transition - not optional
     - The conversation continues after this
 
     Complete example response: "Perfect, thank you! Would you like to schedule a call with our team to discuss your project in detail?"
+    
+    Duplicate text: {duplicate_text}
     """
 
     GET_SLOTS_INSTRUCTION: str = """
