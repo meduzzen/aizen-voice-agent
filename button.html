@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .aizen__btn {
+      margin-top: 40px;
+      position: relative;
+      width: 230px;
+      height: 60px;
+      background: #1629D6;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 130%;
+      letter-spacing: 0;
+      transition: transform 0.2s ease, background 0.3s ease;
+    }
+  </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const btn = document.getElementById("talkToAizen");
+      const originalText = btn.textContent;
+
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)({
+        sampleRate: 24000
+      });
+      let ws, micCtx, micStream, workletNode;
+      let waitingMic = false;
+      let micAllowed = false;
+
+      const workletCode = `
+class QueueProcessor extends AudioWorkletProcessor {
+    constructor() {
+        super();
+        this.audioQueue = [];
+        this.port.onmessage = (event) => {
+            if (event.data.type === 'push') this.audioQueue.push(event.data.audio);
+            else if (event.data.type === 'clear') this.audioQueue = [];
+        };
+        this.readIndex = 0;
+        this.currentBuffer = null;
+    }
+    process(inputs, outputs) {
+        const output = outputs[0];
+        const channel = output[0];
+        for (let i = 0; i < channel.length; i++) {
+            if (!this.currentBuffer || this.readIndex >= this.currentBuffer.length) {
+                if (this.audioQueue.length === 0) {
+                    channel[i] = 0;
+                    continue;
+                }
+                this.currentBuffer = this.audioQueue.shift();
+                this.readIndex = 0;
+            }
+            channel[i] = this.currentBuffer[this.readIndex++] || 0;
+        }
+        return true;
+    }
+}
+registerProcessor('queue-processor', QueueProcessor);
+`;
+      const blob = new Blob([workletCode], {
+        type: "application/javascript"
+      });
+      const url = URL.createObjectURL(blob);
+      await audioCtx.audioWorklet.addModule(url);
+      workletNode = new AudioWorkletNode(audioCtx, 'queue-processor');
+      workletNode.connect(audioCtx.destination);
+
+      function enqueueAudio(float32) {
+        workletNode.port.postMessage({
+          type: 'push',
+          audio: float32
+        });
+      }
+
+      function decodeAudio(base64) {
+        const binary = atob(base64);
+        const buffer = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) buffer[i] = binary.charCodeAt(i);
+        const int16 = new Int16Array(buffer.buffer);
+        const float32 = new Float32Array(int16.length);
+        for (let i = 0; i < int16.length; i++)
+          float32[i] = int16[i] < 0 ? int16[i] / 32768 : int16[i] / 32767;
+        return float32;
+      }
+
+      async function startMicStream() {
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            sampleRate: 16000,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+        micCtx = new AudioContext({
+          sampleRate: 16000
+        });
+        const source = micCtx.createMediaStreamSource(micStream);
+        const processor = micCtx.createScriptProcessor(4096, 1, 1);
+        processor.onaudioprocess = (event) => {
+          const inputData = event.inputBuffer.getChannelData(0);
+          const int16 = convertFloat32ToInt16(inputData);
+          const base64Chunk = arrayBufferToBase64(int16);
+          if (ws && ws.readyState === WebSocket.OPEN)
+            ws.send(JSON.stringify({
+              event: "media",
+              media: {
+                payload: base64Chunk
+              }
+            }));
+        };
+        source.connect(processor);
+        processor.connect(micCtx.destination);
+      }
+
+      function stopBot() {
+        try {
+          if (ws && ws.readyState === WebSocket.OPEN)
+            ws.send(JSON.stringify({
+              event: "input_audio_buffer.commit"
+            }));
+          if (ws) ws.close();
+          if (micStream) {
+            micStream.getTracks().forEach(track => track.stop());
+            micStream = null;
+          }
+          if (micCtx && micCtx.state !== "closed") micCtx.close();
+          workletNode.port.postMessage({
+            type: 'clear'
+          });
+          const silent = audioCtx.createBufferSource();
+          silent.buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+          silent.connect(audioCtx.destination);
+          silent.start();
+          waitingMic = false;
+          btn.classList.remove("listening", "stopping");
+          btn.textContent = originalText;
+        } catch (e) {
+          console.warn("StopBot error:", e);
+        }
+      }
+
+      function convertFloat32ToInt16(buffer) {
+        const buf = new Int16Array(buffer.length);
+        for (let i = 0; i < buffer.length; i++) {
+          let s = Math.max(-1, Math.min(1, buffer[i]));
+          buf[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+        return buf.buffer;
+      }
+
+      function arrayBufferToBase64(buffer) {
+        let binary = "";
+        const bytes = new Uint8Array(buffer);
+        for (let i = 0; i < bytes.length; i += 0x8000) {
+          const chunk = bytes.subarray(i, i + 0x8000);
+          binary += String.fromCharCode.apply(null, chunk);
+        }
+        return btoa(binary);
+      }
+
+      btn.addEventListener("mouseenter", () => {
+        if (!micAllowed && waitingMic) {
+          btn.textContent = "Give it a try";
+        } else if (btn.classList.contains("listening")) {
+          btn.textContent = "Press to stop";
+        } else if (!micAllowed) {
+          btn.textContent = "Give it a try";
+        }
+      });
+      btn.addEventListener("mouseleave", () => {
+        if (!micAllowed && waitingMic) {
+          btn.textContent = "Give it a sec...";
+        } else if (btn.classList.contains("listening")) {
+          btn.textContent = "Just talk!";
+        } else {
+          btn.textContent = originalText;
+        }
+      });
+
+      btn.addEventListener("click", async () => {
+        if (btn.classList.contains("listening")) {
+          stopBot();
+          return;
+        }
+
+        btn.disabled = true;
+        btn.classList.add("listening");
+
+        if (!micAllowed) {
+          waitingMic = true;
+          btn.textContent = "Give it a sec...";
+        }
+
+        try {
+          await navigator.mediaDevices.getUserMedia({
+            audio: true
+          });
+          micAllowed = true;
+          waitingMic = false;
+
+          ws = new WebSocket("ws://localhost:8000/web-bot/media-stream");
+          ws.binaryType = "arraybuffer";
+
+          ws.onopen = async () => {
+            ws.send(JSON.stringify({
+              type: "start",
+              msg: "user_talking"
+            }));
+            await audioCtx.resume();
+            await startMicStream();
+            btn.textContent = "Just talk!";
+          };
+
+          ws.onmessage = (event) => {
+            if (typeof event.data === "string") {
+              try {
+                const json = JSON.parse(event.data);
+                if (json.event === "media" && json.media?.payload)
+                  enqueueAudio(decodeAudio(json.media.payload));
+              } catch { }
+            }
+          };
+
+          ws.onerror = ws.onclose = () => stopBot();
+        } catch (err) {
+          btn.textContent = "Microphone blocked";
+          btn.classList.remove("listening");
+          waitingMic = false;
+          console.warn("Mic access denied:", err);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <button id="talkToAizen" class="aizen-hero__btn aizen__btn">Talk to Aizen</button>
+</body>
+
+</html>

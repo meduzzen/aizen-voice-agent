@@ -7,7 +7,7 @@ TOOLS_SALESBOT = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "A short description of the client's matter (e.g. 'property settlement', 'employment contract review')",
+                    "description": "A short description of the client's matter",
                 }
             },
             "additionalProperties": False,

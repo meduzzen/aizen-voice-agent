@@ -1,4 +1,5 @@
 import random
+import uuid
 
 from app.core.config.agent.tools import TOOLS_SALESBOT
 from app.core.config.conversational_states import CONVERSATIONAL_STATES_WEBSALES_BOT
@@ -47,3 +48,5 @@ class WebBotService(BaseBotService, LogMixin):
 
         self.log(f"Final INIT message to send: {self.chosen_message}")
         self.openai_service.update_init_messages(InitMessages(messages=messages))
+
+

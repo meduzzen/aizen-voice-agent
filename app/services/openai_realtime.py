@@ -94,7 +94,7 @@ class OpenAIRealtimeService(LogMixin):
             )
         )
         await websocket.send(json.dumps({"type": "response.create"}))
-
+    
     async def generate_audio_response(
         self,
         stream_id: str,
@@ -102,36 +102,59 @@ class OpenAIRealtimeService(LogMixin):
         response_text: str,
         tool_name: str = None,
     ) -> None:
-        response_message = {
-            "type": "conversation.item.create",
-            "item": {
-                "type": "function_call_output",
-                "call_id": stream_id,
-                "output": response_text,
-            },
-        }
-        await websocket.send(json.dumps(response_message))
+        try:
+            self.log(f"[TOOL PROCESSING] Starting generate_audio_response for call_id={stream_id}, tool={tool_name}")
+            self.log(f"[TOOL PROCESSING] Response text length: {len(response_text)}, first 200 chars: {response_text[:200]}")
+            
+            response_message = {
+                "type": "conversation.item.create",
+                "item": {
+                    "type": "function_call_output",
+                    "call_id": stream_id,
+                    "output": response_text,
+                },
+            }
+            
+            self.log(f"[TOOL PROCESSING] Sending function_call_output...")
+            await websocket.send(json.dumps(response_message))
+            self.log(f"[TOOL PROCESSING] function_call_output sent successfully")
 
-        tool_mapping = {
-            "create_contact": Prompts.CREATE_CONTACT_INSTRUCTION,
-            "get_free_appointment_slots": Prompts.GET_SLOTS_INSTRUCTION,
-            "create_appointment": Prompts.CREATE_APPOINTMENT_INSTRUCTION,
-        }
+            tool_mapping = {
+                "create_contact": Prompts.CREATE_CONTACT_INSTRUCTION,
+                "get_free_appointment_slots": Prompts.GET_SLOTS_INSTRUCTION,
+                "create_appointment": Prompts.CREATE_APPOINTMENT_INSTRUCTION,
+                "get_service_details": Prompts.GET_SERVICE_DETAILS_INSTRUCTION,
+            }
+            
+            duplicate_text = (
+                "Oh, it looks like you're already in our database, happy to see you again! "
+                "Would you like to schedule a call with our team to discuss your project in detail?"
+                if tool_name == "create_contact" and isinstance(response_text, dict) and response_text.get("is_duplicate")
+                else ""
+            )
+
+
+            instructions_template = tool_mapping.get(tool_name, Prompts.TOOL_RESULT_INSTRUCTION)
+            instructions = instructions_template.format(response_text=response_text, duplicate_text=duplicate_text)
+            
+            self.log(f"[TOOL PROCESSING] Instructions length: {len(instructions)}, first 200 chars: {instructions[:200]}")
+
+            response_create = {
+                "type": "response.create",
+                "response": {"modalities": ["text", "audio"], "instructions": instructions},
+            }
+            
+            self.log(f"[TOOL PROCESSING] Sending response.create...")
+            self.log(f"{json.dumps(response_create, indent=2)}")
         
-        duplicate_text = (
-            "Oh, it looks like you're already in our database, happy to see you again! "
-            "Would you like to schedule a call with our team to discuss your project in detail?"
-            if tool_name == "create_contact" and isinstance(response_text, dict) and response_text.get("is_duplicate")
-            else ""
-        )
-
-        instructions_template = tool_mapping.get(tool_name, Prompts.TOOL_RESULT_INSTRUCTION)
-        instructions = instructions_template.format(response_text=response_text, duplicate_text=duplicate_text)
-        
-        self.log(f"[TOOL PROCESSING] Generate audio response {stream_id}: {instructions}")
-
-        response_create = {
-            "type": "response.create",
-            "response": {"modalities": ["text", "audio"], "instructions": instructions},
-        }
-        await websocket.send(json.dumps(response_create))
+            self.log(f"[TOOL PROCESSING] Sending response.create...")
+            await websocket.send(json.dumps(response_create))
+            self.log(f"[TOOL PROCESSING] response.create sent successfully")
+            self.log(f"[TOOL PROCESSING] Waiting for OpenAI response...")
+            
+        except (websockets.ConnectionClosedOK, websockets.ConnectionClosedError) as e:
+            self.log(f"[ERROR] WebSocket closed during generate_audio_response: {e}")
+            raise
+        except Exception as e:
+            self.log(f"[ERROR] Exception in generate_audio_response: {type(e).name}: {str(e)}")
+            raise

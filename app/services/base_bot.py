@@ -115,6 +115,7 @@ class BaseBotService(AbstractBotService, LogMixin):
     async def execute_tool(self, data: dict, openai_ws: websockets.ClientConnection) -> None:
         tool_name = data.get("name")
         arguments = json.loads(data.get("arguments"))
+        
 
         self.log(f"[TOOL EXECUTION] Executing the tool: {tool_name} with arguments: {arguments}")
 
@@ -127,6 +128,13 @@ class BaseBotService(AbstractBotService, LogMixin):
             async for openai_message in openai_ws:
                 response = json.loads(openai_message)
                 event_type = response.get("type")
+                
+                self.log(f"[OPENAI_EVENT] {event_type}")
+                if event_type in ["response.output_item.done", "response.done", "rate_limits.updated", "conversation.item.created", "response.created"]:
+                    self.log(f"[OPENAI_EVENT_DETAIL] Full payload:\n{json.dumps(response, indent=2)}")
+                
+                if event_type == "error":
+                    self.log(f"[OPENAI_ERROR] Full error: {json.dumps(response, indent=2)}")
 
                 if event_type == OpenAIEvents.ASSISTANT_TRANSCRIPT:
                     await self.transcription_service.proceed_transcription(
@@ -149,12 +157,14 @@ class BaseBotService(AbstractBotService, LogMixin):
                     await self.proceed_user_interruption(openai_ws=openai_ws, ws=ws)
 
                 if event_type == OpenAIEvents.TOOL_CALL:
+                    self.log(f"[TOOL_CALL] Full data: {json.dumps(response, indent=2)}")
                     await self.execute_tool(data=response, openai_ws=openai_ws)
 
         except (websockets.ConnectionClosedOK, websockets.ConnectionClosedError) as e:
-            self.log(f"[OPENAI_WS] recv closed: code={getattr(e, 'code', None)} reason={getattr(e, 'reason', None)}")
+            self.log(f"[OPENAI_WS] Connection closed: code={e.code} reason={e.reason}")
         except Exception as e:
-            self.log(f"Error in send_to_websocket: {e}")
+            self.log(f"[ERROR] Exception in _send_to_websocket: {type(e).name}: {str(e)}")
+
 
     def parsing_start_data(self, start_data: dict) -> None:
         self.stream_sid = start_data.get("streamSid")
@@ -174,6 +184,7 @@ class BaseBotService(AbstractBotService, LogMixin):
                     await self.openai_service.audio_append(websocket=openai_ws, audio_base64=data["media"]["payload"])
 
                 if event_type == EventType.START:
+                    print(f'!!!!!!!! DATA: {data}')
                     self.reset_stream(data=data)  # TODO: parse data to pydantic schema
 
         except WebSocketDisconnect:
