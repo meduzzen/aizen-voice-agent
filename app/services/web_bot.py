@@ -1,5 +1,4 @@
 import random
-import uuid
 
 from app.core.config.agent.tools import TOOLS_SALESBOT
 from app.core.config.conversational_states import CONVERSATIONAL_STATES_WEBSALES_BOT
@@ -13,7 +12,6 @@ from app.services.openai_realtime import OpenAIRealtimeService
 from app.services.summary import SummaryService
 from app.services.tool_service import ToolService
 from app.services.transcription import TranscriptionService
-from app.services.twilio_service import TwilioService
 
 
 class WebBotService(BaseBotService, LogMixin):
@@ -48,5 +46,3 @@ class WebBotService(BaseBotService, LogMixin):
 
         self.log(f"Final INIT message to send: {self.chosen_message}")
         self.openai_service.update_init_messages(InitMessages(messages=messages))
-
-

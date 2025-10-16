@@ -1,8 +1,8 @@
 import json
-import websockets
-
 from contextlib import suppress
 from typing import Any
+
+import websockets
 
 from app.core.config.prompts import Prompts
 from app.core.mixins import LogMixin
@@ -112,7 +112,7 @@ class OpenAIRealtimeService(LogMixin):
 
         instructions_template = tool_mapping.get(tool_name, Prompts.TOOL_RESULT_INSTRUCTION)
         return instructions_template.format(response_text=response_text, duplicate_text=duplicate_text)
-    
+
     async def generate_audio_response(
         self,
         stream_id: str,
@@ -122,7 +122,7 @@ class OpenAIRealtimeService(LogMixin):
     ) -> None:
         try:
             self.log(f"[TOOL PROCESSING] Starting generate_audio_response for call_id={stream_id}, tool={tool_name}")
-            
+
             response_message = {
                 "type": "conversation.item.create",
                 "item": {
@@ -134,14 +134,13 @@ class OpenAIRealtimeService(LogMixin):
 
             await websocket.send(json.dumps(response_message))
 
-
             instructions = self.prepare_instructions(tool_name, response_text)
             response_create = {
                 "type": "response.create",
                 "response": {"modalities": ["text", "audio"], "instructions": instructions},
             }
             await websocket.send(json.dumps(response_create))
-            
+
         except (websockets.ConnectionClosedOK, websockets.ConnectionClosedError) as e:
             self.log(f"[ERROR] WebSocket closed during generate_audio_response: {e}")
             raise

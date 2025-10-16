@@ -38,7 +38,7 @@ class ColdCallingBotService(BaseBotService, LogMixin):
             tool_service=tool_service,
             gohighlevel_service=gohighlevel_service,
         )
-        self.twilio_service = twilio_service,
+        self.twilio_service = (twilio_service,)
         self.llm = ChatOpenAI(
             model=settings.open_ai.CHAT_MODEL,
             temperature=settings.open_ai.TEMPERATURE,

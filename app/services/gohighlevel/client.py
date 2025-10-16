@@ -36,12 +36,12 @@ class GoHighLevelClient:
             tags=tags,
             customFields=customFields,
         )
-        
+
         if contact_data.get("is_duplicate"):
             self.contact_id = contact_data.get("existing_contact_id")
         elif contact_data.get("contact_id"):
             self.contact_id = contact_data.get("contact_id")
-        
+
         return contact_data
 
     async def update_contact(

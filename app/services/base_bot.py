@@ -1,11 +1,10 @@
 import asyncio
 import json
 import uuid
-import websockets
-
 from abc import ABC, abstractmethod
 from contextlib import suppress
 
+import websockets
 from fastapi import WebSocket, WebSocketDisconnect
 
 from app.core.config.config import settings
@@ -115,7 +114,6 @@ class BaseBotService(AbstractBotService, LogMixin):
     async def execute_tool(self, data: dict, openai_ws: websockets.ClientConnection) -> None:
         tool_name = data.get("name")
         arguments = json.loads(data.get("arguments"))
-        
 
         self.log(f"[TOOL EXECUTION] Executing the tool: {tool_name} with arguments: {arguments}")
 
@@ -157,7 +155,6 @@ class BaseBotService(AbstractBotService, LogMixin):
             self.log(f"[OPENAI_WS] Connection closed: {e}")
         except Exception as e:
             self.log(f"[ERROR] Exception in _send_to_websocket: {e}")
-
 
     def parsing_start_data(self, start_data: dict) -> None:
         self.stream_sid = start_data.get("streamSid")

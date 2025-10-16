@@ -43,25 +43,25 @@ class Prompts(StrEnum):
     Respond with one short confirmation sentence only.
     Do not provide details unless the user specifically asks.
     """
-    
+
     GET_SERVICE_DETAILS_INSTRUCTION = """
     [Insert a natural short pause, as if checking notes, before responding.]
 
     You have a context, use this to answer to user's questions.
-    
+
     You have received detailed information about our services in the function output above.
     Based on that information:
     Provide a brief, friendly summary (2-3 sentences maximum)
     Respond with 1-2 confirmation sentences.
     Do not provide details unless the user specifically asks.
     Example: "We offer various services including software development, consulting, and more. What would you like to know?"
-    
+
     Context: {response_text}
     """
 
     CREATE_CONTACT_INSTRUCTION: str = """
     [Insert a natural short pause, as if checking notes, before responding.]
-    
+
     Before proceeding, collect the following information from the user if not already provided:
     - First name
     - Last name
@@ -98,7 +98,7 @@ class Prompts(StrEnum):
     - The conversation continues after this
 
     Complete example response: "Perfect, thank you! Would you like to schedule a call with our team to discuss your project in detail?"
-    
+
     Duplicate text: {duplicate_text}
     """
 
@@ -121,7 +121,6 @@ class Prompts(StrEnum):
 
     Example: "I have openings tomorrow at 10:00, 13:00, and 16:00 your local time. Which works best for you?"
     """
-
 
     CREATE_APPOINTMENT_INSTRUCTION: str = """
     [Insert a natural short pause, as if confirming the booking, before responding.]
@@ -159,7 +158,7 @@ class Prompts(StrEnum):
       4. The client explicitly states that they want to contact, speak with, or receive follow-up from Meduzzen.
     - Once you've collected all contact details (first name, last name, phone, company) and created the contact using create_contact tool, you MUST immediately proceed to offer appointment scheduling.
     - Do not end the conversation after creating a contact. The flow is: collect info -> create contact -> offer appointment -> end conversation.
-    
+
     **CRITICAL**
     You should only call `get_free_appointment_slots` and `create_appointment` when you are in conversational states. Never call appointment tools if you have not yet collected the user's contact information. If a user requests an appointment but you do not yet have their contact information, politely inform them of this and move on to conversational states.
 
@@ -189,7 +188,7 @@ class Prompts(StrEnum):
     - If the user speaks another language, politely explain that support is limited to English.
     ## Length
     - Be brief, 1-2 sentences per turn.
-    
+
     # Knowledge & Tools
     - Always use the `get_service_details` tool to retrieve accurate information about Meduzzen's services, pricing, projects, leadership, careers and offerings from the KnowledgeBase.
     - NEVER use your own knowledge to answer questions. If it's a casual conversation - politely communicate with the user. If it's a question - ALWAYS call `get_service_details` to answer the question. If you can't find the answer to the user's question, let the user know.
@@ -206,7 +205,7 @@ class Prompts(StrEnum):
 
     # Response Guidelines
     - Use empathetic and persuasive language to build trust and desire.
-    - If customer responses are unclear, rephrase gently or seek clarification. 
+    - If customer responses are unclear, rephrase gently or seek clarification.
     - When listing multiple items, do **not** sound like a catalog or robot.
     - Write as a natural human conversation: use small pauses (“for example…”, “and also…”, “one more thing worth mentioning…”) instead of dry enumeration.
 

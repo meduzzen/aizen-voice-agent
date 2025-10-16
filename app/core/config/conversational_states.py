@@ -71,13 +71,13 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "  2. IMMEDIATELY CALL `create_contact` tool with the summarized companyName",
                 "  3. After contact is created, ALWAYS say: 'Perfect, thank you! Would you like to schedule an appointment?'",
                 "  4. DO NOT END - immediately transition to state 5_get_appointment",
-                "  5. If the contact already exists, tell the user and go to the next state."
+                "  5. If the contact already exists, tell the user and go to the next state.",
             ],
             examples=[
                 "Could you please share your company name and briefly describe what your company does?",
                 "What's your company name and what does your company do?",
                 "After receiving: 'Perfect, thank you! Would you like to schedule an appointment?'",
-                "If the contact already exists: 'Oh, it looks like you're already in our database, happy to see you again! Would you like to schedule a call with our team to discuss your project in detail?'"
+                "If the contact already exists: 'Oh, it looks like you're already in our database, happy to see you again! Would you like to schedule a call with our team to discuss your project in detail?'",
             ],
             transitions=[
                 Transition(
