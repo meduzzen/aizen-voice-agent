@@ -47,13 +47,17 @@ class Prompts(StrEnum):
     WAIT_FOR_PHONE_INSTRUCTION = """
     [Insert a short silent pause as if listening to the user.]
     Use {response_text} only as internal context — never expose it directly.
-
-    Silently wait for the user to speak their phone number (including full international format, e.g., +380XXXXXXXXX). 
-    Do NOT provide any output during this pause.
-
-    After the wait, ask the user: 'You said [phone_number], correct?'
-    If the user confirms, proceed to the next step: collecting company information.
-    If the user denies or provides an unclear number, repeat the question and wait again.
+    
+    Just stay silent for 3 seconds while the user is speaking.
+    """
+    
+    GET_PHONE_NUMBER_INSTRUCTION: str = """
+    [Insert a natural short pause, as if checking notes, before responding.]
+    Use {response_text} only as internal context — never expose it directly.
+    The user has provided a phone number. Extract the number and save it.
+    Then ALWAYS ask the user: 'You said [phone_number], correct?'. Say exactly the number you received.
+    If the user says 'no', wait for the next input and repeat the process with the new number.
+    If the user confirms, proceed to the next state: `4_get_company_name`.
     """
 
     GET_SERVICE_DETAILS_INSTRUCTION = """
@@ -175,6 +179,7 @@ class Prompts(StrEnum):
       4. The client explicitly states that they want to contact, speak with, or receive follow-up from Meduzzen.
     - Once you've collected all contact details (first name, last name, phone, company) and created the contact using create_contact tool, you MUST immediately proceed to offer appointment scheduling.
     - Do not end the conversation after creating a contact. The flow is: collect info -> create contact -> offer appointment -> end conversation.
+    - Never generate tool calls for transitions between states.
 
     **CRITICAL**
     You should only call `get_free_appointment_slots` and `create_appointment` when you are in conversational states. Never call appointment tools if you have not yet collected the user's contact information. If a user requests an appointment but you do not yet have their contact information, politely inform them of this and move on to conversational states.

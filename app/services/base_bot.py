@@ -143,6 +143,11 @@ class BaseBotService(AbstractBotService, LogMixin):
                         speaker=Speaker.CLIENT,
                         session_id=self.session_id,
                     )
+                    self.log(f"RESPONSE: {response}")
+                    
+                    transcript = response.get("transcript", "")
+                    if transcript:
+                        await self.tool_service.get_phone_number(transcript)
 
                 if event_type == OpenAIEvents.SPEECH_STARTED:
                     await self.proceed_user_interruption(openai_ws=openai_ws, ws=ws)

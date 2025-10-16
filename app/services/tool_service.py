@@ -1,4 +1,5 @@
 import asyncio
+import re
 from typing import Callable
 
 from langchain_openai import ChatOpenAI
@@ -24,6 +25,7 @@ class ToolService(LogMixin):
         self.twilio_service = twilio_service
         self.knowledge_base_service = knowledge_base_service
         self.gohighlevel_service = gohighlevel_service
+        self.last_user_phone = None
         self.enabled_tools = enabled_tools or [
             "get_service_details",
             "finish_the_call",
@@ -41,6 +43,7 @@ class ToolService(LogMixin):
             "get_free_appointment_slots": self.get_free_appointment_slots,
             "create_appointment": self.create_appointment,
             "wait_for": self.wait_for,
+            "get_phone_number": self.get_phone_number,
         }
         return {k: v for k, v in mapping.items() if k in self.enabled_tools}
 
@@ -90,3 +93,8 @@ class ToolService(LogMixin):
         self.log(f"[DEBUG] Done waiting.")
         return "wait_completed"
     
+    async def get_phone_number(self, transcript: str):
+        match = re.search(r"\+\d{9,15}", transcript)
+        if match:
+            self.last_user_phone = match.group(0)
+        return {"lastUserPhone": self.last_user_phone}

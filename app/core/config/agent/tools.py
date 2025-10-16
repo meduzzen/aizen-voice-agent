@@ -32,6 +32,22 @@ TOOLS_SALESBOT = [
         "strict": True,
     },
     {
+    "name": "get_phone_number",
+    "description": "Fetches the last saved user transcript containing a phone number in international format.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "transcript": {
+                "type": "string",
+                "description": "The user transcript that should contain the phone number.",
+            }
+        },
+        "additionalProperties": False,
+        "required": ["transcript"],
+    },
+    "strict": True,
+    },
+    {
         "name": "create_contact",
         "description": "Creates a new contact record in the CRM system. The contact will automatically have a custom field for storing the conversation transcript.",
         "parameters": {

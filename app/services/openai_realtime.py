@@ -102,6 +102,7 @@ class OpenAIRealtimeService(LogMixin):
             "create_appointment": Prompts.CREATE_APPOINTMENT_INSTRUCTION,
             "get_service_details": Prompts.GET_SERVICE_DETAILS_INSTRUCTION,
             "wait_for": Prompts.WAIT_FOR_PHONE_INSTRUCTION,
+            "get_phone_number": Prompts.GET_PHONE_NUMBER_INSTRUCTION,
         }
 
         duplicate_text = (
