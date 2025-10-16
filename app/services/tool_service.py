@@ -1,3 +1,4 @@
+import asyncio
 from typing import Callable
 
 from langchain_openai import ChatOpenAI
@@ -39,6 +40,7 @@ class ToolService(LogMixin):
             "update_contact_info": self.update_contact_info,
             "get_free_appointment_slots": self.get_free_appointment_slots,
             "create_appointment": self.create_appointment,
+            "wait_for": self.wait_for,
         }
         return {k: v for k, v in mapping.items() if k in self.enabled_tools}
 
@@ -81,3 +83,10 @@ class ToolService(LogMixin):
 
     async def create_appointment(self, startTime: str, **kwargs):
         return await self.gohighlevel_service.create_appointment(startTime)
+    
+    async def wait_for(self, seconds: int, *args, **kwargs) -> None:
+        self.log(f"[DEBUG] Waiting silently for {seconds} seconds...")
+        await asyncio.sleep(seconds)
+        self.log(f"[DEBUG] Done waiting.")
+        return "wait_completed"
+    

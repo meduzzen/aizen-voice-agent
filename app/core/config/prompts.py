@@ -43,6 +43,18 @@ class Prompts(StrEnum):
     Respond with one short confirmation sentence only.
     Do not provide details unless the user specifically asks.
     """
+    
+    WAIT_FOR_PHONE_INSTRUCTION = """
+    [Insert a short silent pause as if listening to the user.]
+    Use {response_text} only as internal context — never expose it directly.
+
+    Silently wait for the user to speak their phone number (including full international format, e.g., +380XXXXXXXXX). 
+    Do NOT provide any output during this pause.
+
+    After the wait, ask the user: 'You said [phone_number], correct?'
+    If the user confirms, proceed to the next step: collecting company information.
+    If the user denies or provides an unclear number, repeat the question and wait again.
+    """
 
     GET_SERVICE_DETAILS_INSTRUCTION = """
     [Insert a natural short pause, as if checking notes, before responding.]
@@ -135,7 +147,12 @@ class Prompts(StrEnum):
     Example: "Perfect! I've scheduled your call for [date/time]. Our team will reach out to you shortly. Is there anything else I can help you with?"
     """
 
-    TRANSCRIPTION_PROMPT: str = "Transcribe the audio word by word, emitting each word as soon as it is recognized. Do not cut words. Treat numbers carefully: recognize digits zero to nine, as well as numbers like ten, eleven, twelve, twenty, thirty, forty, ninety."
+    TRANSCRIPTION_PROMPT: str = """
+    Transcribe the audio word by word, emitting each word as soon as it is recognized. 
+    Do not cut words. Treat numbers carefully: recognize digits zero to nine, as well as numbers like ten, eleven, twelve, twenty, thirty, forty, ninety. 
+    The user will pronounce digits as follows:\n
+    zero -> 'zero', one -> 'one', two -> 'two', three -> 'three', four -> 'four', five -> 'five', six -> 'six', seven -> 'seven', eight -> 'eight', nine -> 'nine'.
+    Pay attention to mispronunciations and minor variations, and do not interrupt the user until the full number sequence is complete."""
 
     SYSTEM_PROMPT: str = """
     # Identity

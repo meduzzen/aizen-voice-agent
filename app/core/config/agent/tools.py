@@ -16,6 +16,22 @@ TOOLS_SALESBOT = [
         "strict": True,
     },
     {
+        "name": "wait_for",
+        "description": "Pauses the conversation for a given number of seconds before resuming. Use this to silently wait while the user says the full phone number.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "seconds": {
+                    "type": "integer",
+                    "description": "The number of seconds to wait."
+                }
+            },
+            "additionalProperties": False,
+            "required": ["seconds"],
+        },
+        "strict": True,
+    },
+    {
         "name": "create_contact",
         "description": "Creates a new contact record in the CRM system. The contact will automatically have a custom field for storing the conversation transcript.",
         "parameters": {
