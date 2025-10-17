@@ -52,12 +52,13 @@ class Prompts(StrEnum):
     """
     
     GET_PHONE_NUMBER_INSTRUCTION: str = """
-    [Insert a natural short pause, as if checking notes, before responding.]
-    Use {response_text} only as internal context — never expose it directly.
-    The user has provided a phone number. Extract the number and save it.
-    Then ALWAYS ask the user: 'You said [phone_number], correct?'. Say exactly the number you received.
-    If the user says 'no', wait for the next input and repeat the process with the new number.
-    If the user confirms, proceed to the next state: `4_get_company_name`.
+    [Insert a natural short pause]
+    IMPORTANT: The user said a phone number. Extract the EXACT digits they said, character by character.
+    Do NOT interpret, do NOT add country codes, do NOT reformat.
+    Save the exact number as spoken.
+    Then ask: 'You said [exact_number], correct?'
+    If confirmed -> next state: `4_get_company_name`
+    If 'no' -> ask again
     """
 
     GET_SERVICE_DETAILS_INSTRUCTION = """
