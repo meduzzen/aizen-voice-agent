@@ -126,9 +126,10 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "Once waiting is over, IMMEDIATELY call the `get_phone_number` tool with the user's transcript to extract and save the number.",
                 "Once you 3 seconds is over, IMMEDIATELY repeat the number back digit by digit and ALWAYS ask: 'You said [number], correct?'",
                 "If the user says 'no' or indicates the number is incorrect, politely ask them to repeat the number. Always repeat only the most recent number provided by the user.",
+                "If the user said 'yes' and confirms phone number, IMMEDIATELY move to the next state `4_get_company_name` and NEVER call `get_phone_number` tool again."
                 "Continue this loop until the user confirms the number is correct. Do not proceed until a valid phone number is confirmed."
                 "You can move on to the next state ONLY if user confirms phone number."
-                "After user confirms phone number, IMMEDIATELY go to next state `3_get_company_name`."
+                "After user confirms phone number, IMMEDIATELY go to next state `4_get_company_name`."
             ],
             examples=[
                 "May I have your phone number in full international format, including the country code? For example: +380XXXXXXXXX.",
