@@ -64,6 +64,8 @@ class ToolService(LogMixin):
         companyName: str,
         tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN],
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ) -> ContactDetail:
         return await self.gohighlevel_service.create_contact(
             firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields
@@ -78,21 +80,31 @@ class ToolService(LogMixin):
         companyName: str | None = None,
         tags: list[GoHighLevel] | None = None,
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ):
-        return await self.gohighlevel_service.update_contact(contact_id, firstName, lastName, phone, companyName, tags, customFields)
+        return await self.gohighlevel_service.update_contact(
+            contact_id=contact_id,
+            firstName=firstName,
+            lastName=lastName,
+            phone=phone,
+            companyName=companyName,
+            tags=tags,
+            customFields=customFields,
+        )
 
     async def get_free_appointment_slots(self, startDate: str, endDate: str):
         return await self.gohighlevel_service.get_free_slots(startDate, endDate)
 
     async def create_appointment(self, startTime: str, **kwargs):
         return await self.gohighlevel_service.create_appointment(startTime)
-    
+
     async def wait_for(self, seconds: int, *args, **kwargs) -> None:
         self.log(f"[DEBUG] Waiting silently for {seconds} seconds...")
         await asyncio.sleep(seconds)
-        self.log(f"[DEBUG] Done waiting.")
+        self.log("[DEBUG] Done waiting.")
         return "wait_completed"
-    
+
     async def get_phone_number(self, transcript: str):
         match = re.search(r"\+\d{9,15}", transcript)
         if match:

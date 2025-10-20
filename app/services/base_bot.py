@@ -143,7 +143,7 @@ class BaseBotService(AbstractBotService, LogMixin):
                         speaker=Speaker.CLIENT,
                         session_id=self.session_id,
                     )
-                    
+
                     transcript = response.get("transcript", "")
                     if transcript:
                         await self.tool_service.get_phone_number(transcript)

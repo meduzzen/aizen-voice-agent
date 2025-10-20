@@ -12,51 +12,31 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
             instructions=[
                 "Ask politely: 'Before we continue, I'd love to know your first name to set things up for you.'",
                 "After the user responds, repeat what you heard — e.g., 'Did I get that right, [first_name]?'",
-                "If the user says it's incorrect, ask again politely.",
-                "After three unsuccessful attempts, ask them to spell their first name letter by letter.",
+                "If the user says it's incorrect, ask to spell the name letter by letter.",
                 "Once the correct first name is confirmed, proceed to the next state `2_get_last_name`.",
             ],
             examples=[
                 "Before we continue, I'd love to know your first name to set things up for you.",
                 "Did I get that right, John?",
-                "Could you please spell your first name for me, letter by letter?"
+                "Could you please spell your first name for me, letter by letter?",
             ],
             transitions=[
                 Transition(next_step="2_get_last_name", condition="Once the correct first name is confirmed."),
-                Transition(next_step="1_get_first_name_retry", condition="If the user says the name was heard incorrectly."),
-                Transition(next_step="1_get_first_name_spelling", condition="If after 3 failed attempts, ask for spelling."),
-            ],
-        ),
-        ConversationalState(
-            id="1_get_first_name_retry",
-            description="Retry getting the user's first name if previous attempt was unclear or incorrect.",
-            instructions=[
-                "Say politely: 'I'm sorry, could you please repeat your first name?'",
-                "After the response, confirm again by repeating it back.",
-                "If still unclear after 3 tries, ask them to spell it letter by letter."
-            ],
-            examples=[
-                "I'm sorry, could you please repeat your first name?",
-                "You said John, correct?",
-                "I'm still having trouble understanding — could you please spell your first name letter by letter?"
-            ],
-            transitions=[
-                Transition(next_step="2_get_last_name", condition="Once a valid and confirmed first name is obtained."),
-                Transition(next_step="1_get_first_name_spelling", condition="After 3 unclear attempts."),
+                Transition(next_step="1_get_first_name_spelling", condition="If the first name is incorrect, ask for spelling."),
             ],
         ),
         ConversationalState(
             id="1_get_first_name_spelling",
             description="Ask the user to spell their first name letter by letter.",
             instructions=[
-                "Say: 'No worries, could you please spell your first name for me, one letter at a time?'",
+                "Say: 'Could you please spell your first name for me, one letter at a time?'",
                 "Repeat the letters back to confirm correctness.",
-                "Once confirmed, proceed to asking for the last name."
+                "Once confirmed, proceed to asking for the last name.",
             ],
             examples=[
-                "No worries, could you please spell your first name for me, one letter at a time?",
+                "Could you please spell your first name for me, one letter at a time?",
                 "You said J-O-H-N, correct?",
-                "Got it — John. Thank you! Let's move on, what's your last name?"
+                "Got it — John. Thank you! Let's move on, what's your last name?",
             ],
             transitions=[
                 Transition(next_step="2_get_last_name", condition="Once the spelled first name is confirmed."),
@@ -68,36 +48,17 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
             instructions=[
                 "Politely say: 'Thank you! And may I have your last name as well?'",
                 "After the response, confirm by repeating — e.g., 'Did I get that right, [last_name]?'",
-                "If incorrect, ask again politely.",
-                "After 3 failed attempts, ask the user to spell their last name letter by letter.",
+                "If incorrect, ask to spell it letter by letter.",
+                "Once the correct last name is confirmed, proceed to the next state `3_get_and_verify_phone`.",
             ],
             examples=[
                 "Thank you! And may I have your last name as well?",
                 "Did I get that right, Smith?",
-                "Could you please spell your last name for me, letter by letter?"
+                "Could you please spell your last name for me, letter by letter?",
             ],
             transitions=[
                 Transition(next_step="3_get_and_verify_phone", condition="Once the correct last name is confirmed."),
-                Transition(next_step="2_get_last_name_retry", condition="If user says the name was heard incorrectly."),
-                Transition(next_step="2_get_last_name_spelling", condition="If 3 failed attempts to understand."),
-            ],
-        ),
-        ConversationalState(
-            id="1_get_last_name_retry",
-            description="Retry getting the user's last name if previous attempt was unclear or incorrect.",
-            instructions=[
-                "Say politely: 'I'm sorry, could you please repeat your last name?'",
-                "After the response, confirm again by repeating it back.",
-                "If still unclear after 3 tries, ask them to spell it letter by letter."
-            ],
-            examples=[
-                "I'm sorry, could you please repeat your last name?",
-                "You said Smith, correct?",
-                "I'm still having trouble understanding — could you please spell your last name letter by letter?"
-            ],
-            transitions=[
-                Transition(next_step="3_get_and_verify_phone", condition="Once a valid and confirmed last name is obtained."),
-                Transition(next_step="2_get_last_name_spelling", condition="After 3 unclear attempts."),
+                Transition(next_step="2_get_last_name_spelling", condition="If the last name is incorrect, ask for spelling."),
             ],
         ),
         ConversationalState(
@@ -106,12 +67,12 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
             instructions=[
                 "Say: 'Could you please spell your last name for me, one letter at a time?'",
                 "Repeat the letters back to confirm correctness.",
-                "Once confirmed, proceed to the next step."
+                "Once confirmed, proceed to the next step.",
             ],
             examples=[
                 "Could you please spell your last name for me, one letter at a time?",
                 "You said S-M-I-T-H, correct?",
-                "Got it — Smith. Thank you! Let's move on."
+                "Got it — Smith. Thank you! Let's move on.",
             ],
             transitions=[
                 Transition(next_step="3_get_and_verify_phone", condition="Once the spelled last name is confirmed."),
@@ -129,7 +90,7 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "If the user said 'yes' and confirms phone number, IMMEDIATELY move to the next state `4_get_company_name` and NEVER call `get_phone_number` tool again."
                 "Continue this loop until the user confirms the number is correct. Do not proceed until a valid phone number is confirmed."
                 "You can move on to the next state ONLY if user confirms phone number."
-                "After user confirms phone number, IMMEDIATELY go to next state `4_get_company_name`."
+                "After user confirms phone number, IMMEDIATELY go to next state `4_get_company_name`.",
             ],
             examples=[
                 "May I have your phone number in full international format, including the country code? For example: +380XXXXXXXXX.",

@@ -43,14 +43,14 @@ class Prompts(StrEnum):
     Respond with one short confirmation sentence only.
     Do not provide details unless the user specifically asks.
     """
-    
+
     WAIT_FOR_PHONE_INSTRUCTION = """
     [Insert a short silent pause as if listening to the user.]
     Use {response_text} only as internal context — never expose it directly.
-    
+
     Just stay silent for 3 seconds while the user is speaking.
     """
-    
+
     GET_PHONE_NUMBER_INSTRUCTION: str = """
     [Insert a natural short pause]
     IMPORTANT: The user said a phone number. Extract the EXACT digits they said, character by character.
@@ -153,8 +153,8 @@ class Prompts(StrEnum):
     """
 
     TRANSCRIPTION_PROMPT: str = """
-    Transcribe the audio word by word, emitting each word as soon as it is recognized. 
-    Do not cut words. Treat numbers carefully: recognize digits zero to nine, as well as numbers like ten, eleven, twelve, twenty, thirty, forty, ninety. 
+    Transcribe the audio word by word, emitting each word as soon as it is recognized.
+    Do not cut words. Treat numbers carefully: recognize digits zero to nine, as well as numbers like ten, eleven, twelve, twenty, thirty, forty, ninety.
     The user will pronounce digits as follows:\n
     zero -> 'zero', one -> 'one', two -> 'two', three -> 'three', four -> 'four', five -> 'five', six -> 'six', seven -> 'seven', eight -> 'eight', nine -> 'nine'.
     Pay attention to mispronunciations and minor variations, and do not interrupt the user until the full number sequence is complete."""
@@ -166,7 +166,7 @@ class Prompts(StrEnum):
     # CRITICAL: Opening Message
     You MUST start every new conversation by saying EXACTLY this greeting (word-for-word, no changes or paraphrasing):
     "{chosen_message}"
-    
+
     # Follow-Up Instructions:
     Start asking follow-up questions ONLY after you learn about the user's problem or what the user is interested in. Then, based on the conversation and the user's interests, ask follow-up questions.
 

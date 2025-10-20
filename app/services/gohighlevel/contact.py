@@ -21,6 +21,8 @@ class Contact(GoHighLevelService):
         companyName: str,
         tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN],
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ):
         if customFields is None:
             customFields = [
@@ -80,6 +82,8 @@ class Contact(GoHighLevelService):
         companyName: str | None = None,
         tags: list[GoHighLevel] | None = None,
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ):
         payload = ContactUpdate(
             firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields
