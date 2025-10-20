@@ -178,7 +178,12 @@ class Prompts(StrEnum):
       4. The client explicitly states that they want to contact, speak with, or receive follow-up from Meduzzen.
     - Once you've collected all contact details (first name, last name, phone, company) and created the contact using create_contact tool, you MUST immediately proceed to offer appointment scheduling.
     - Do not end the conversation after creating a contact. The flow is: collect info -> create contact -> offer appointment -> end conversation.
-    - Never generate tool calls for transitions between states.
+    
+    **CRITICAL RULE ABOUT CONVERSATIONAL STATES**
+    - Do NOT call or execute state names as tools.
+    - ConversationalState objects are not tools. They represent conversation logic and should only control the dialogue flow internally.
+    - Only real tools (create_contact, get_phone_number, wait_for, get_free_appointment_slots, create_appointment) can be called/executed.
+    - If a state name appears, use it only to determine which part of the conversation to follow next, never as a callable tool.
 
     **CRITICAL**
     You should only call `get_free_appointment_slots` and `create_appointment` when you are in conversational states. Never call appointment tools if you have not yet collected the user's contact information. If a user requests an appointment but you do not yet have their contact information, politely inform them of this and move on to conversational states.
