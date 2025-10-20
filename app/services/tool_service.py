@@ -1,3 +1,5 @@
+import asyncio
+import re
 from typing import Callable
 
 from langchain_openai import ChatOpenAI
@@ -23,6 +25,7 @@ class ToolService(LogMixin):
         self.twilio_service = twilio_service
         self.knowledge_base_service = knowledge_base_service
         self.gohighlevel_service = gohighlevel_service
+        self.last_user_phone = None
         self.enabled_tools = enabled_tools or [
             "get_service_details",
             "finish_the_call",
@@ -39,6 +42,8 @@ class ToolService(LogMixin):
             "update_contact_info": self.update_contact_info,
             "get_free_appointment_slots": self.get_free_appointment_slots,
             "create_appointment": self.create_appointment,
+            "wait_for": self.wait_for,
+            "get_phone_number": self.get_phone_number,
         }
         return {k: v for k, v in mapping.items() if k in self.enabled_tools}
 
@@ -59,6 +64,8 @@ class ToolService(LogMixin):
         companyName: str,
         tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN],
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ) -> ContactDetail:
         return await self.gohighlevel_service.create_contact(
             firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields
@@ -73,11 +80,33 @@ class ToolService(LogMixin):
         companyName: str | None = None,
         tags: list[GoHighLevel] | None = None,
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ):
-        return await self.gohighlevel_service.update_contact(contact_id, firstName, lastName, phone, companyName, tags, customFields)
+        return await self.gohighlevel_service.update_contact(
+            contact_id=contact_id,
+            firstName=firstName,
+            lastName=lastName,
+            phone=phone,
+            companyName=companyName,
+            tags=tags,
+            customFields=customFields,
+        )
 
     async def get_free_appointment_slots(self, startDate: str, endDate: str):
         return await self.gohighlevel_service.get_free_slots(startDate, endDate)
 
     async def create_appointment(self, startTime: str, **kwargs):
         return await self.gohighlevel_service.create_appointment(startTime)
+
+    async def wait_for(self, seconds: int, *args, **kwargs) -> None:
+        self.log(f"[DEBUG] Waiting silently for {seconds} seconds...")
+        await asyncio.sleep(seconds)
+        self.log("[DEBUG] Done waiting.")
+        return "wait_completed"
+
+    async def get_phone_number(self, transcript: str):
+        match = re.search(r"\+\d{9,15}", transcript)
+        if match:
+            self.last_user_phone = match.group(0)
+        return {"lastUserPhone": self.last_user_phone}

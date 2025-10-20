@@ -3,7 +3,6 @@ from contextlib import suppress
 from typing import Any
 
 import websockets
-from websockets import ConnectionClosedError, ConnectionClosedOK
 
 from app.core.config.prompts import Prompts
 from app.core.mixins import LogMixin
@@ -43,7 +42,7 @@ class OpenAIRealtimeService(LogMixin):
         }
         try:
             await websocket.send(json.dumps(audio_append))
-        except (ConnectionClosedOK, ConnectionClosedError) as e:
+        except (websockets.ConnectionClosedOK, websockets.ConnectionClosedError) as e:
             print(f"[OpenAI_WS] send closed: code={getattr(e, 'code', None)} reason={getattr(e, 'reason', None)}")
             return
 
@@ -95,29 +94,17 @@ class OpenAIRealtimeService(LogMixin):
         )
         await websocket.send(json.dumps({"type": "response.create"}))
 
-    async def generate_audio_response(
-        self,
-        stream_id: str,
-        websocket: websockets.ClientConnection,
-        response_text: str,
-        tool_name: str = None,
-    ) -> None:
-        response_message = {
-            "type": "conversation.item.create",
-            "item": {
-                "type": "function_call_output",
-                "call_id": stream_id,
-                "output": response_text,
-            },
-        }
-        await websocket.send(json.dumps(response_message))
-
+    @staticmethod
+    def prepare_instructions(tool_name: str, response_text: str) -> str:
         tool_mapping = {
             "create_contact": Prompts.CREATE_CONTACT_INSTRUCTION,
             "get_free_appointment_slots": Prompts.GET_SLOTS_INSTRUCTION,
             "create_appointment": Prompts.CREATE_APPOINTMENT_INSTRUCTION,
+            "get_service_details": Prompts.GET_SERVICE_DETAILS_INSTRUCTION,
+            "wait_for": Prompts.WAIT_FOR_PHONE_INSTRUCTION,
+            "get_phone_number": Prompts.GET_PHONE_NUMBER_INSTRUCTION,
         }
-        
+
         duplicate_text = (
             "Oh, it looks like you're already in our database, happy to see you again! "
             "Would you like to schedule a call with our team to discuss your project in detail?"
@@ -126,12 +113,39 @@ class OpenAIRealtimeService(LogMixin):
         )
 
         instructions_template = tool_mapping.get(tool_name, Prompts.TOOL_RESULT_INSTRUCTION)
-        instructions = instructions_template.format(response_text=response_text, duplicate_text=duplicate_text)
-        
-        self.log(f"[TOOL PROCESSING] Generate audio response {stream_id}: {instructions}")
+        return instructions_template.format(response_text=response_text, duplicate_text=duplicate_text)
 
-        response_create = {
-            "type": "response.create",
-            "response": {"modalities": ["text", "audio"], "instructions": instructions},
-        }
-        await websocket.send(json.dumps(response_create))
+    async def generate_audio_response(
+        self,
+        stream_id: str,
+        websocket: websockets.ClientConnection,
+        response_text: str,
+        tool_name: str = None,
+    ) -> None:
+        try:
+            self.log(f"[TOOL PROCESSING] Starting generate_audio_response for call_id={stream_id}, tool={tool_name}")
+
+            response_message = {
+                "type": "conversation.item.create",
+                "item": {
+                    "type": "function_call_output",
+                    "call_id": stream_id,
+                    "output": response_text,
+                },
+            }
+
+            await websocket.send(json.dumps(response_message))
+
+            instructions = self.prepare_instructions(tool_name, response_text)
+            response_create = {
+                "type": "response.create",
+                "response": {"modalities": ["text", "audio"], "instructions": instructions},
+            }
+            await websocket.send(json.dumps(response_create))
+
+        except (websockets.ConnectionClosedOK, websockets.ConnectionClosedError) as e:
+            self.log(f"[ERROR] WebSocket closed during generate_audio_response: {e}")
+            raise
+        except Exception as e:
+            self.log(f"[ERROR] Exception in generate_audio_response: {e}")
+            raise

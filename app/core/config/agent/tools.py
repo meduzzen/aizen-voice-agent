@@ -7,11 +7,38 @@ TOOLS_SALESBOT = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "A short description of the client's matter (e.g. 'property settlement', 'employment contract review')",
+                    "description": "A short description of the client's matter",
                 }
             },
             "additionalProperties": False,
             "required": ["query"],
+        },
+        "strict": True,
+    },
+    {
+        "name": "wait_for",
+        "description": "Pauses the conversation for a given number of seconds before resuming. Use this to silently wait while the user says the full phone number.",
+        "parameters": {
+            "type": "object",
+            "properties": {"seconds": {"type": "integer", "description": "The number of seconds to wait."}},
+            "additionalProperties": False,
+            "required": ["seconds"],
+        },
+        "strict": True,
+    },
+    {
+        "name": "get_phone_number",
+        "description": "Fetches the last saved user transcript containing a phone number in international format.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "transcript": {
+                    "type": "string",
+                    "description": "The user transcript that should contain the phone number.",
+                }
+            },
+            "additionalProperties": False,
+            "required": ["transcript"],
         },
         "strict": True,
     },

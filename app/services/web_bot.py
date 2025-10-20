@@ -2,7 +2,7 @@ import random
 
 from app.core.config.agent.tools import TOOLS_SALESBOT
 from app.core.config.conversational_states import CONVERSATIONAL_STATES_WEBSALES_BOT
-from app.core.config.init_messages import FOLLOW_UP_QUESTIONS_VARIATIONS, INIT_MESSAGES
+from app.core.config.init_messages import INIT_MESSAGES
 from app.core.config.prompts import Prompts
 from app.core.mixins import LogMixin
 from app.schemas.config import InitMessages, SessionConfig, Tool
@@ -12,7 +12,6 @@ from app.services.openai_realtime import OpenAIRealtimeService
 from app.services.summary import SummaryService
 from app.services.tool_service import ToolService
 from app.services.transcription import TranscriptionService
-from app.services.twilio_service import TwilioService
 
 
 class WebBotService(BaseBotService, LogMixin):
@@ -26,15 +25,12 @@ class WebBotService(BaseBotService, LogMixin):
     ) -> None:
         super().__init__(summary_service, transcription_service, openai_service, tool_service, gohighlevel_service)
         self.chosen_message = random.choice(INIT_MESSAGES)
-        self.chosen_question = random.choice(FOLLOW_UP_QUESTIONS_VARIATIONS)
 
     async def initialize_config(self) -> None:
         self.log(f"Chosen init message: {self.chosen_message}")
-        self.log(f"Chosen question: {self.chosen_question}")
         session_config = SessionConfig(
             instructions=Prompts.SYSTEM_PROMPT.format(
                 chosen_message=self.chosen_message,
-                chosen_question=self.chosen_question,
                 conversational_states=CONVERSATIONAL_STATES_WEBSALES_BOT,
                 scenario="",
             ),

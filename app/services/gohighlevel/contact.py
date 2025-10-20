@@ -21,6 +21,8 @@ class Contact(GoHighLevelService):
         companyName: str,
         tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN],
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ):
         if customFields is None:
             customFields = [
@@ -45,10 +47,10 @@ class Contact(GoHighLevelService):
 
         if status_code >= 400:
             self.log(f"Failed to create contact ({status_code}): {response_json}")
-            
+
             is_duplicate = False
             existing_contact_id = None
-            
+
             if isinstance(response_json, dict):
                 error_message = response_json.get("message", "").lower()
                 if "does not allow duplicated contacts" in error_message or "duplicate" in error_message:
@@ -56,12 +58,12 @@ class Contact(GoHighLevelService):
                     meta = response_json.get("meta", {})
                     existing_contact_id = meta.get("contactId")
                     self.log(f"Contact with {phone} already exists (id: {existing_contact_id})")
-            
+
             return {
                 "is_duplicate": is_duplicate,
                 "existing_contact_id": existing_contact_id,
             }
-            
+
         contact_info = response_json.get("contact", {})
         self.log(f"Contact info: {contact_info}")
 
@@ -80,6 +82,8 @@ class Contact(GoHighLevelService):
         companyName: str | None = None,
         tags: list[GoHighLevel] | None = None,
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ):
         payload = ContactUpdate(
             firstName=firstName, lastName=lastName, phone=phone, companyName=companyName, tags=tags, customFields=customFields
