@@ -27,6 +27,8 @@ class GoHighLevelClient:
         companyName: str,
         tags: list[GoHighLevel] = [GoHighLevel.FROM_AIZEN],
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ):
         contact_data = await self.contact_service.create_contact(
             firstName=firstName,
@@ -36,25 +38,28 @@ class GoHighLevelClient:
             tags=tags,
             customFields=customFields,
         )
-        
+
         if contact_data.get("is_duplicate"):
             self.contact_id = contact_data.get("existing_contact_id")
         elif contact_data.get("contact_id"):
             self.contact_id = contact_data.get("contact_id")
-        
+
         return contact_data
 
     async def update_contact(
         self,
+        contact_id: str | None = None,
         firstName: str | None = None,
         lastName: str | None = None,
         phone: str | None = None,
         companyName: str | None = None,
         tags: list[GoHighLevel] | None = None,
         customFields: list[CustomFieldSchema] | None = None,
+        *args,
+        **kwargs,
     ):
         return await self.contact_service.update_contact(
-            contact_id=self.contact_id,
+            contact_id=contact_id if contact_id else self.contact_id,
             firstName=firstName,
             lastName=lastName,
             phone=phone,

@@ -8,42 +8,89 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
     states=[
         ConversationalState(
             id="1_get_first_name",
-            description="Ask for the user's first name.",
+            description="Ask for and confirm the user's first name.",
             instructions=[
-                "Politely ask, 'Before we continue, I'd love to know your first name to set things up for you.'",
-                "Do NOT verify or spell back the name; just accept it.",
-                "If the response is unrecognizable, politely ask again until a valid first name is received.",
+                "Ask politely: 'Before we continue, I'd love to know your first name to set things up for you.'",
+                "After the user responds, repeat what you heard — e.g., 'Did I get that right, [first_name]?'",
+                "If the user says it's incorrect, ask to spell the name letter by letter.",
+                "Once the correct first name is confirmed, proceed to the next state `2_get_last_name`.",
             ],
-            examples=["Before we continue, I'd love to know your first name to set things up for you."],
+            examples=[
+                "Before we continue, I'd love to know your first name to set things up for you.",
+                "Did I get that right, John?",
+                "Could you please spell your first name for me, letter by letter?",
+            ],
             transitions=[
-                Transition(next_step="2_get_last_name", condition="Once a valid first name is obtained."),
-                Transition(next_step="1_get_first_name", condition="If invalid, or unclear input."),
+                Transition(next_step="2_get_last_name", condition="Once the correct first name is confirmed."),
+                Transition(next_step="1_get_first_name_spelling", condition="If the first name is incorrect, ask for spelling."),
+            ],
+        ),
+        ConversationalState(
+            id="1_get_first_name_spelling",
+            description="Ask the user to spell their first name letter by letter.",
+            instructions=[
+                "Say: 'Could you please spell your first name for me, one letter at a time?'",
+                "Repeat the letters back to confirm correctness.",
+                "Once confirmed, proceed to asking for the last name.",
+            ],
+            examples=[
+                "Could you please spell your first name for me, one letter at a time?",
+                "You said J-O-H-N, correct?",
+                "Got it — John. Thank you! Let's move on, what's your last name?",
+            ],
+            transitions=[
+                Transition(next_step="2_get_last_name", condition="Once the spelled first name is confirmed."),
             ],
         ),
         ConversationalState(
             id="2_get_last_name",
-            description="Ask for the user's last name.",
+            description="Ask for and confirm the user's last name.",
             instructions=[
-                "Politely ask, 'Thank you! And may I have your last name as well?'",
-                "Do NOT verify or spell back the name; just accept it.",
-                "If the response is unrecognizable, politely ask again until a valid last name is received.",
+                "Politely say: 'Thank you! And may I have your last name as well?'",
+                "After the response, confirm by repeating — e.g., 'Did I get that right, [last_name]?'",
+                "If incorrect, ask to spell it letter by letter.",
+                "Once the correct last name is confirmed, proceed to the next state `3_get_and_verify_phone`.",
             ],
-            examples=["Thank you! And may I have your last name as well?"],
+            examples=[
+                "Thank you! And may I have your last name as well?",
+                "Did I get that right, Smith?",
+                "Could you please spell your last name for me, letter by letter?",
+            ],
             transitions=[
-                Transition(next_step="3_get_and_verify_phone", condition="Once a valid last name is obtained."),
-                Transition(next_step="2_get_last_name", condition="If invalid or unclear input."),
+                Transition(next_step="3_get_and_verify_phone", condition="Once the correct last name is confirmed."),
+                Transition(next_step="2_get_last_name_spelling", condition="If the last name is incorrect, ask for spelling."),
+            ],
+        ),
+        ConversationalState(
+            id="2_get_last_name_spelling",
+            description="Ask the user to spell their last name letter by letter.",
+            instructions=[
+                "Say: 'Could you please spell your last name for me, one letter at a time?'",
+                "Repeat the letters back to confirm correctness.",
+                "Once confirmed, proceed to the next step.",
+            ],
+            examples=[
+                "Could you please spell your last name for me, one letter at a time?",
+                "You said S-M-I-T-H, correct?",
+                "Got it — Smith. Thank you! Let's move on.",
+            ],
+            transitions=[
+                Transition(next_step="3_get_and_verify_phone", condition="Once the spelled last name is confirmed."),
             ],
         ),
         ConversationalState(
             id="3_get_and_verify_phone",
             description="Request phone number including country code and verify by repeating it back.",
             instructions=[
-                "Politely request the user's phone number, making sure they include the full international format (e.g., +380XXXXXXXXX), also ALWAYS ask the user to say each digit slowly and clearly, especially if digits repeat.",
-                "Once provided, repeat the number back digit by digit and ask: 'You said [number], correct?'",
-                "If the user says 'no' or indicates the number is incorrect, politely ask them to repeat the number.",
-                "Always repeat the most recent number provided by the user, not any previous attempts.",
-                "Continue this loop until the user confirms the number is correct.",
-                "Do not proceed until a valid phone number is confirmed.",
+                "Politely request the user's phone number, making sure they include the full international format (e.g., +380XXXXXXXXX). Ask the user to say each digit slowly and clearly, especially if digits repeat.",
+                "After you asked the user about phone call the `wait_for` tool with **seconds: 3** to silently wait while the user says the full number. Do not tell the user you are waiting.",
+                "Once waiting is over, IMMEDIATELY call the `get_phone_number` tool with the user's transcript to extract and save the number.",
+                "Once you 3 seconds is over, IMMEDIATELY repeat the number back digit by digit and ALWAYS ask: 'You said [number], correct?'",
+                "If the user says 'no' or indicates the number is incorrect, politely ask them to repeat the number. Always repeat only the most recent number provided by the user.",
+                "If the user said 'yes' and confirms phone number, IMMEDIATELY move to the next state `4_get_company_name` and NEVER call `get_phone_number` tool again."
+                "Continue this loop until the user confirms the number is correct. Do not proceed until a valid phone number is confirmed."
+                "You can move on to the next state ONLY if user confirms phone number."
+                "After user confirms phone number, IMMEDIATELY go to next state `4_get_company_name`.",
             ],
             examples=[
                 "May I have your phone number in full international format, including the country code? For example: +380XXXXXXXXX.",
@@ -71,13 +118,13 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "  2. IMMEDIATELY CALL `create_contact` tool with the summarized companyName",
                 "  3. After contact is created, ALWAYS say: 'Perfect, thank you! Would you like to schedule an appointment?'",
                 "  4. DO NOT END - immediately transition to state 5_get_appointment",
-                "  5. If the contact already exists, tell the user and go to the next state."
+                "  5. If the contact already exists, tell the user and go to the next state.",
             ],
             examples=[
                 "Could you please share your company name and briefly describe what your company does?",
                 "What's your company name and what does your company do?",
                 "After receiving: 'Perfect, thank you! Would you like to schedule an appointment?'",
-                "If the contact already exists: 'Oh, it looks like you're already in our database, happy to see you again! Would you like to schedule a call with our team to discuss your project in detail?'"
+                "If the contact already exists: 'Oh, it looks like you're already in our database, happy to see you again! Would you like to schedule a call with our team to discuss your project in detail?'",
             ],
             transitions=[
                 Transition(

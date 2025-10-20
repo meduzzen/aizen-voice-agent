@@ -18,7 +18,6 @@ from app.services.openai_realtime import OpenAIRealtimeService
 from app.services.summary import SummaryService
 from app.services.tool_service import ToolService
 from app.services.transcription import TranscriptionService
-from app.services.twilio_service import TwilioService
 
 
 class AbstractBotService(ABC):
@@ -145,16 +144,21 @@ class BaseBotService(AbstractBotService, LogMixin):
                         session_id=self.session_id,
                     )
 
+                    transcript = response.get("transcript", "")
+                    if transcript:
+                        await self.tool_service.get_phone_number(transcript)
+
                 if event_type == OpenAIEvents.SPEECH_STARTED:
                     await self.proceed_user_interruption(openai_ws=openai_ws, ws=ws)
 
                 if event_type == OpenAIEvents.TOOL_CALL:
+                    self.log(f"[TOOL_CALL] Full data: {json.dumps(response, indent=2)}")
                     await self.execute_tool(data=response, openai_ws=openai_ws)
 
         except (websockets.ConnectionClosedOK, websockets.ConnectionClosedError) as e:
-            self.log(f"[OPENAI_WS] recv closed: code={getattr(e, 'code', None)} reason={getattr(e, 'reason', None)}")
+            self.log(f"[OPENAI_WS] Connection closed: {e}")
         except Exception as e:
-            self.log(f"Error in send_to_websocket: {e}")
+            self.log(f"[ERROR] Exception in _send_to_websocket: {e}")
 
     def parsing_start_data(self, start_data: dict) -> None:
         self.stream_sid = start_data.get("streamSid")
