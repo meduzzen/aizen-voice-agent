@@ -117,8 +117,9 @@ class BaseBotService(AbstractBotService, LogMixin):
 
         self.log(f"[TOOL EXECUTION] Executing the tool: {tool_name} with arguments: {arguments}")
 
-        result = await self.tool_service.tool_mapping[tool_name](**arguments)
-        if result:
+        tool = self.tool_service.tool_mapping.get(tool_name)
+        if tool:
+            result = await tool(**arguments)
             await self.openai_service.generate_audio_response(self.stream_sid, openai_ws, result, tool_name=tool_name)
 
     async def _send_to_websocket(self, openai_ws: websockets.ClientConnection, ws: WebSocket) -> None:

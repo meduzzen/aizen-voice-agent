@@ -119,7 +119,7 @@ TOOLS_SALESBOT = [
         "parameters": {
             "type": "object",
             "properties": {
-                "startTime": {"type": "string", "description": "Start time of the appointment (ISO format)."},
+                "startTime": {"type": "string", "description": "startTime must be a valid ISO 8601 date string."},
             },
             "additionalProperties": False,
             "required": ["startTime"],

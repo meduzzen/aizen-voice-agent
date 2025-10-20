@@ -87,34 +87,9 @@ class Prompts(StrEnum):
 
     Contact created successfully. Use {response_text} only as internal context — never expose it directly.
 
-    # CURRENT STATE TRANSITION: 4_get_company_name -> 5_get_appointment
+    # CURRENT STATE TRANSITION: 4_get_company_name -> 5_get_available_slots
 
-    YOU MUST NOW PROCEED TO STATE "5_get_appointment":
-
-    State Description: Ask the user if they would like to schedule an appointment and gather details if they agree.
-
-    Instructions for this state:
-    - Politely ask the user if they would like to schedule an appointment with the Meduzzen team.
-    - Example: "Would you like to schedule a call with our team to discuss your project in detail?"
-    - If they say YES: Call get_free_appointment_slots to retrieve available time slots, then present options.
-    - If they say NO: Acknowledge politely and offer alternative follow-up.
-
-    YOUR IMMEDIATE RESPONSE FORMAT:
-    1. Brief confirmation (1 sentence): "Perfect, thank you!" or "Great, all set!"
-    2. IMMEDIATE appointment question (1 sentence): "Would you like to schedule a call with our team to discuss your project in detail?"
-
-    CRITICAL REMINDERS:
-    - If the contact already exists, tell the user and go to the next state.
-    - If duplicate_text is provided and NOT EMPTY, you MUST use it as your response
-    - DO NOT use "Perfect, thank you!" if duplicate_text exists
-    - If duplicate_text exists: use ONLY that text, nothing else
-    - If duplicate_text is empty: use the standard confirmation
-    - DO NOT end conversation after confirmation
-    - You MUST ask the appointment question in the SAME response
-    - This is a required transition - not optional
-    - The conversation continues after this
-
-    Complete example response: "Perfect, thank you! Would you like to schedule a call with our team to discuss your project in detail?"
+    YOU MUST NOW PROCEED TO STATE "5_get_available_slots" and ask the user if they would like to schedule an appointment with the Meduzzen team:`
 
     Duplicate text: {duplicate_text}
     """
@@ -122,11 +97,8 @@ class Prompts(StrEnum):
     GET_SLOTS_INSTRUCTION: str = """
     [Insert a natural short pause, as if checking the calendar, before responding.]
 
-    Available appointment slots retrieved: {response_text}
-
     IMPORTANT:
-    - First, ask the user in which city/timezone they are located.
-    - Then, convert all times from UTC to the user's local timezone before presenting to them.
+    - Convert all times from UTC to the user's local timezone before presenting to them.
     - If the timezone is not clear, politely ask for clarification.
 
     Example:
@@ -168,10 +140,10 @@ class Prompts(StrEnum):
     "{chosen_message}"
 
     # Follow-Up Instructions:
-    Start asking follow-up questions ONLY after you learn about the user's problem or what the user is interested in. Then, based on the conversation and the user's interests, ask follow-up questions.
+    Start asking follow-up questions ONLY after you learn about the user's problem or what the user is interested in. Then, based on the conversation and the user's interests, ask 2-3 follow-up questions.
 
     **Important**
-    - Only trigger conversational_states (to collect first name, last name, phone, and company) **when one of the following occurs AND personal info has not yet been collected**:
+    - Your main goal is to collect first name, last name, phone, and company name from the client before creating a contact or offering appointment scheduling:
       1. The client shows clear interest in Meduzzen’s services.
       2. The client is about to leave, says they have no further questions, or expresses intent to end the call.
       3. Any other signal that the conversation is reaching its conclusion but contact info is needed.
@@ -218,7 +190,6 @@ class Prompts(StrEnum):
     # Knowledge & Tools
     - Always use the `get_service_details` tool to retrieve accurate information about Meduzzen's services, pricing, projects, leadership, careers and offerings from the KnowledgeBase.
     - NEVER use your own knowledge to answer questions. If it's a casual conversation - politely communicate with the user. If it's a question - ALWAYS call `get_service_details` to answer the question. If you can't find the answer to the user's question, let the user know.
-    - For conversational states use `create_contact` to save information about client in the CRM system. For any actions with appointments use `get_free_appointment_slots` and `create_appointment` tools.
     - Never guess or fabricate service details. If information is not available, politely inform the customer that you cannot provide a definite answer.
     - Use retrieved information to emphasize how Meduzzen solves customer problems and improves their business outcomes.
 
