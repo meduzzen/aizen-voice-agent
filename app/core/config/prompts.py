@@ -86,44 +86,90 @@ class Prompts(StrEnum):
     - Company name and its brief description
 
     Contact created successfully. Use {response_text} only as internal context — never expose it directly.
-
+    
+    If the response contains "error" or "is required":
+      - Politely explain to the user that the field from the error is mandatory and without it, you will not be able to save the user to the database and book a call.
+      - Ask him again to say the missing field.
+      
     # CURRENT STATE TRANSITION: 4_get_company_name -> 5_get_available_slots
 
     YOU MUST NOW PROCEED TO STATE "5_get_available_slots" and ask the user if they would like to schedule an appointment with the Meduzzen team:`
 
     Duplicate text: {duplicate_text}
     """
+    
+    CONVERT_TIME_INSTRUCTION: str = """
+    [Insert a natural short pause, as if converting time, before responding.]
+
+    This tool converts a given UTC time to a user's local timezone or into a custom format.
+
+    USAGE:
+    - Input: UTC time (ISO 8601, e.g., "2025-10-21T14:00:00Z") and the target timezone (e.g., "America/Toronto").
+    - Optional: specify a custom output format (default is "%Y-%m-%dT%H:%M:%S%z" for GoHighLevel).
+
+    IMPORTANT:
+    - Always convert UTC appointment slots to the user's local time before presenting them.
+    - When confirming an appointment, convert the selected local time back to ISO 8601 with proper timezone offset for GoHighLevel.
+    - Handle errors gracefully: if conversion fails, inform the user politely and ask them to re-enter the time.
+
+    EXAMPLES:
+    1. Converting free slots for display:
+      Input: "2025-10-22T14:00:00Z", "America/Toronto"
+      Output: "2025-10-22T10:00:00-04:00"
+      LLM response: "We have openings tomorrow at 10:00 AM, 11:30 AM, and 3:00 PM your local time. Which works best for you?"
+
+    2. Converting user's selected time back to UTC for booking:
+      Input: "2025-10-22T10:00:00", "America/Toronto"
+      Output: "2025-10-22T14:00:00Z"
+      LLM then calls `create_appointment` with this UTC time.
+    """
+
 
     GET_SLOTS_INSTRUCTION: str = """
     [Insert a natural short pause, as if checking the calendar, before responding.]
 
     IMPORTANT:
-    - Convert all times from UTC to the user's local timezone before presenting to them.
+    - Always use the `convert_time` tool to convert all UTC slots to the user's local timezone before presenting them.
     - If the timezone is not clear, politely ask for clarification.
+    - Present the available time slots in the user's local time in a friendly way.
+    - List 3-5 options and ask them to choose.
 
     Example:
     User: "I am in New York."
-    Slot shows "14:00:00" UTC -> Present it as "10:00 AM" New York time.
+    Slot shows "14:00:00" UTC -> Use `convert_time` tool -> Present as "10:00 AM New York time."
 
-    Present the available time slots in the user's local time in a friendly way.
-    List 3-5 options and ask them to choose.
-
-    Example: "I have openings tomorrow at 10:00, 13:00, and 16:00 your local time. Which works best for you?"
+    Friendly response example:
+    "I have openings tomorrow at 10:00, 13:00, and 16:00 your local time. Which works best for you?"
     """
+
 
     CREATE_APPOINTMENT_INSTRUCTION: str = """
     [Insert a natural short pause, as if confirming the booking, before responding.]
 
-    Appointment created successfully: {response_text}
+    Before calling `create_appointment`:
+    - If the user's selected time is in local timezone, use the `convert_time` tool to convert it into ISO8601 with proper timezone offset for GoHighLevel.
 
-    Confirm the appointment details to the user:
-    - Thank them for scheduling
-    - Confirm the date and time
-    - Let them know the team will contact them
+    Response from booking system: {response_text}
 
-    Example: "Perfect! I've scheduled your call for [date/time]. Our team will reach out to you shortly. Is there anything else I can help you with?"
+    YOUR INSTRUCTIONS:
+    If the response contains "Slot unavailable", "Error", or indicates failure:
+      - Apologize politely to the user
+      - Explain that the selected time slot is no longer available
+      - Offer to show updated available times
+      - Ask: "Would you like me to check what times are available now?"
+      
+    Example: "Oh, I'm sorry! It looks like that time slot was just booked by someone else. Would you like me to show you the latest available times?"
+
+    If the response is successful (contains appointment details like appointmentId):
+      - Thank them for scheduling
+      - Confirm the date and time in their local timezone (use `convert_time` if needed)
+      - Let them know the team will contact them
+      - Ask if there's anything else you can help with
+      
+    Example: "Perfect! I've scheduled your call for tomorrow at 2:00 PM Toronto time. Our team will reach out to you shortly. Is there anything else I can help you with?"
     """
 
+    
     TRANSCRIPTION_PROMPT: str = """
     Transcribe the audio word by word, emitting each word as soon as it is recognized.
     Do not cut words. Treat numbers carefully: recognize digits zero to nine, as well as numbers like ten, eleven, twelve, twenty, thirty, forty, ninety.

@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import pytz
 from aiohttp_retry import Union
 
 from app.core.config.config import settings
@@ -17,18 +16,9 @@ class Appointment(GoHighLevelService):
     def __init__(self):
         super().__init__()
 
-    @staticmethod
-    def normalise_datetime_to_utc(startTime: datetime | str) -> str:
-        if not startTime.endswith("Z"):
-            if "+" in startTime:
-                dt = datetime.fromisoformat(startTime)
-                dt_utc = dt.astimezone(pytz.UTC)
-                return dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
-            return startTime + "Z"
 
     async def create_appointment(self, contact_id: str, startTime: str) -> dict | str:
         try:
-            startTime = self.normalise_datetime_to_utc(startTime)
 
             payload = AppointmentBase(
                 calendarId=settings.gohighlevel.CALENDAR_ID, contactId=contact_id, startTime=startTime, title=GoHighLevel.APPOINTMENT_TITLE

@@ -1,12 +1,15 @@
 import asyncio
+from datetime import datetime
 import re
 from typing import Callable
 
 from langchain_openai import ChatOpenAI
+import pytz
 
 from app.core import settings
 from app.core.config.enums import GoHighLevel
 from app.core.mixins import LogMixin
+from app.schemas.gohighlevel.appointment import ConvertTimeRequest
 from app.schemas.gohighlevel.contact import ContactDetail, CustomFieldSchema
 from app.services.gohighlevel.client import GoHighLevelClient
 from app.services.knowledge_base import KnowledgeBaseService
@@ -44,6 +47,7 @@ class ToolService(LogMixin):
             "create_appointment": self.create_appointment,
             "wait_for": self.wait_for,
             "get_phone_number": self.get_phone_number,
+            "convert_time": self.convert_time,
         }
         return {k: v for k, v in mapping.items() if k in self.enabled_tools}
 
@@ -110,3 +114,13 @@ class ToolService(LogMixin):
         if match:
             self.last_user_phone = match.group(0)
         return {"lastUserPhone": self.last_user_phone}
+    
+    async def convert_time(self, **kwargs) -> dict:
+        try:
+            request = ConvertTimeRequest(**kwargs) 
+            dt_utc = datetime.fromisoformat(request.time_utc.replace("Z", "+00:00"))
+            tz = pytz.timezone(request.timezone)
+            dt_local = dt_utc.astimezone(tz)
+            return {"local_time": dt_local.strftime(request.output_format)}
+        except Exception as e:
+            return {"error": str(e)}

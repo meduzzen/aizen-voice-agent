@@ -1,5 +1,5 @@
 from openai import BaseModel
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, field_validator
 
 from app.schemas.summary import MessageSchema
 
@@ -42,3 +42,17 @@ class ContactDetail(BaseModel):
     companyName: str = Field(..., alias="companyName")
     tags: list[str] = ["From AIZen"]
     customFields: list[CustomFieldSchema] | None = None
+    
+
+class CreateContactRequest(BaseModel):
+    firstName: str
+    lastName: str
+    phone: str
+    companyName: str
+    
+    @field_validator('firstName', 'lastName', 'phone', 'companyName')
+    @classmethod
+    def validate_required_fields(cls, v):
+        if not v or (isinstance(v, str) and not v.strip()):
+            raise ValueError('Field cannot be empty')
+        return v

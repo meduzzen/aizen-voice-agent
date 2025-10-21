@@ -103,8 +103,24 @@ class OpenAIRealtimeService(LogMixin):
             "get_service_details": Prompts.GET_SERVICE_DETAILS_INSTRUCTION,
             "wait_for": Prompts.WAIT_FOR_PHONE_INSTRUCTION,
             "get_phone_number": Prompts.GET_PHONE_NUMBER_INSTRUCTION,
+            "convert_time": Prompts.CONVERT_TIME_INSTRUCTION,
         }
-
+        
+        is_error = isinstance(response_text, str) and ("The slot you have selected is no longer available." in response_text or "Error" in response_text)
+        
+        if tool_name == "create_appointment" and is_error:
+            error_instruction = """
+                The appointment booking failed with this reason: {response_text}
+            
+                Inform the user politely:
+                - Explain why the booking failed
+                - Offer to show updated available slots
+                - Ask: "Would you like me to check the latest available times?"
+                
+                Example: "Oh, it looks like that time slot was just taken! Let me check what's available now..."
+                """
+            return error_instruction.format(response_text=response_text)
+                    
         duplicate_text = (
             "Oh, it looks like you're already in our database, happy to see you again! "
             "Would you like to schedule a call with our team to discuss your project in detail?"

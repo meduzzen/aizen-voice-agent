@@ -43,6 +43,30 @@ TOOLS_SALESBOT = [
         "strict": True,
     },
     {
+        "name": "convert_time",
+        "description": "Converts a given UTC time to the user's local timezone in ISO 8601 format or custom format.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "time_utc": {
+                    "type": "string",
+                    "description": "The time in UTC to convert, in ISO 8601 format (e.g., '2025-10-21T14:00:00Z')."
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The target timezone to convert to (e.g., 'America/Toronto')."
+                },
+                "output_format": {
+                    "type": "string",
+                    "description": "Optional. The strftime format to return the local time (default '%Y-%m-%dT%H:%M:%S%z')."
+                }
+            },
+            "required": ["time_utc", "timezone"],
+            "additionalProperties": False
+        },
+        "strict": True
+    },
+    {
         "name": "create_contact",
         "description": "Creates a new contact record in the CRM system. The contact will automatically have a custom field for storing the conversation transcript.",
         "parameters": {
