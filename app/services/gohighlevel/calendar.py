@@ -25,16 +25,27 @@ class Calendar(GoHighLevelService):
         self.log(f"Available calendars: {response_json}")
         return CalendarsResponse(**response_json)
 
-    async def get_free_slots(self, startDate: str, endDate: str):
-        calendar_info = CalendarInfo(calendarId=settings.gohighlevel.CALENDAR_ID, startDate=startDate, endDate=endDate)
-        response_json = await self.send_request(
-            "GET",
-            f"/calendars/{calendar_info.calendarId}/free-slots?startDate={calendar_info.startDate}&endDate={calendar_info.endDate}",
-        )
-        self.log(f"{response_json}")
-        filtered_slots = {k: v for k, v in response_json.items() if k != "traceId"}
-        available_slots = AvailableSlots(root={k: DateSlots(slots=v["slots"]) for k, v in filtered_slots.items()})
-        return available_slots.model_dump()
+    async def get_free_slots(self, startDate: str, endDate: str, retries: int = 3):
+        for attempt in range(1, retries + 1):
+            try:
+                calendar_info = CalendarInfo(calendarId=settings.gohighlevel.CALENDAR_ID, startDate=startDate, endDate=endDate)
+
+                response_json = await self.send_request(
+                    "GET",
+                    f"/calendars/{calendar_info.calendarId}/free-slots?startDate={calendar_info.startDate}&endDate={calendar_info.endDate}",
+                )
+
+                if not isinstance(response_json, dict):
+                    raise ValueError("API returned unexpected response format")
+
+                filtered_slots = {k: v for k, v in response_json.items() if k != "traceId"}
+                available_slots = AvailableSlots(root={k: DateSlots(slots=v["slots"]) for k, v in filtered_slots.items()})
+                return available_slots.model_dump()
+
+            except Exception as e:
+                self.log(f"Attempt {attempt} failed in get_free_slots: {e}")
+                if attempt == retries:
+                    return {}
 
     @staticmethod
     def get_first_slot(available_slots: AvailableSlots) -> str | None:

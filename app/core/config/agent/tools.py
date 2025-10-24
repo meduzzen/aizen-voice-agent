@@ -43,6 +43,23 @@ TOOLS_SALESBOT = [
         "strict": True,
     },
     {
+        "name": "convert_time",
+        "description": "Converts one or more UTC times to the user's local timezone in ISO 8601 format or custom format.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "time_utc": {
+                    "description": "A UTC time string or a list of UTC time strings in ISO 8601 format (e.g., '2025-10-21T14:00:00Z').",
+                    "oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}],
+                },
+                "timezone": {"type": "string", "description": "The target timezone to convert to (e.g., 'Canada/Toronto')."},
+            },
+            "required": ["time_utc", "timezone"],
+            "additionalProperties": False,
+        },
+        "strict": True,
+    },
+    {
         "name": "create_contact",
         "description": "Creates a new contact record in the CRM system. The contact will automatically have a custom field for storing the conversation transcript.",
         "parameters": {
@@ -119,7 +136,7 @@ TOOLS_SALESBOT = [
         "parameters": {
             "type": "object",
             "properties": {
-                "startTime": {"type": "string", "description": "Start time of the appointment (ISO format)."},
+                "startTime": {"type": "string", "description": "startTime must be a valid ISO 8601 date string."},
             },
             "additionalProperties": False,
             "required": ["startTime"],

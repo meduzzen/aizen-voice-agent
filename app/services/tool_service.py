@@ -1,12 +1,15 @@
-import asyncio
 import re
+from asyncio import gather, sleep, to_thread
+from datetime import datetime
 from typing import Callable
 
+import pytz
 from langchain_openai import ChatOpenAI
 
 from app.core import settings
 from app.core.config.enums import GoHighLevel
 from app.core.mixins import LogMixin
+from app.schemas.gohighlevel.appointment import ConvertTimeRequest
 from app.schemas.gohighlevel.contact import ContactDetail, CustomFieldSchema
 from app.services.gohighlevel.client import GoHighLevelClient
 from app.services.knowledge_base import KnowledgeBaseService
@@ -44,6 +47,7 @@ class ToolService(LogMixin):
             "create_appointment": self.create_appointment,
             "wait_for": self.wait_for,
             "get_phone_number": self.get_phone_number,
+            "convert_time": self.convert_time_tool,
         }
         return {k: v for k, v in mapping.items() if k in self.enabled_tools}
 
@@ -93,15 +97,15 @@ class ToolService(LogMixin):
             customFields=customFields,
         )
 
-    async def get_free_appointment_slots(self, startDate: str, endDate: str):
+    async def get_free_appointment_slots(self, startDate: str, endDate: str, *args, **kwargs):
         return await self.gohighlevel_service.get_free_slots(startDate, endDate)
 
-    async def create_appointment(self, startTime: str, **kwargs):
+    async def create_appointment(self, startTime: str, *args, **kwargs):
         return await self.gohighlevel_service.create_appointment(startTime)
 
-    async def wait_for(self, seconds: int, *args, **kwargs) -> None:
+    async def wait_for(self, seconds: int, *args, **kwargs) -> str:
         self.log(f"[DEBUG] Waiting silently for {seconds} seconds...")
-        await asyncio.sleep(seconds)
+        await sleep(seconds)
         self.log("[DEBUG] Done waiting.")
         return "wait_completed"
 
@@ -110,3 +114,19 @@ class ToolService(LogMixin):
         if match:
             self.last_user_phone = match.group(0)
         return {"lastUserPhone": self.last_user_phone}
+
+    @staticmethod
+    def convert_time(time: str, timezone: str, output_format: str | None = "%Y-%m-%dT%H:%M:%S%z") -> str:
+        request = ConvertTimeRequest(time_utc=time, timezone=timezone, output_format=output_format)
+        dt_utc = datetime.fromisoformat(request.time_utc.replace("Z", "+00:00"))
+        tz = pytz.timezone(request.timezone)
+        dt_local = dt_utc.astimezone(tz)
+        return dt_local.strftime(request.output_format)
+
+    async def convert_time_tool(self, time_utc: list[str] | str, timezone: str, *args, **kwargs) -> list[str] | dict[str, str] | str:
+        try:
+            if isinstance(time_utc, str):
+                return await to_thread(self.convert_time, time_utc, timezone)
+            return await gather(*[to_thread(self.convert_time, t, timezone) for t in time_utc])
+        except Exception as e:
+            return {"error": str(e)}
