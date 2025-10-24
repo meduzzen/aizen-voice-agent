@@ -74,6 +74,9 @@ class GoHighLevelClient:
 
     async def create_appointment(self, startTime: str):
         appointment = await self.appointment_service.create_appointment(self.contact_id, startTime)
+        if isinstance(appointment, str):
+            return appointment
+
         await self.contact_service.update_contact(contact_id=self.contact_id, tags=[GoHighLevel.ALREADY_BOOKED])
         return appointment
 
