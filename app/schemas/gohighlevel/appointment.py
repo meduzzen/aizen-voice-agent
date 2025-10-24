@@ -32,8 +32,8 @@ class AppointmentUpdate(BaseModel):
 
 class AppointmentDetails(BaseModel):
     appointmentId: str = Field(..., alias="id")
-    
-    
+
+
 class ConvertTimeRequest(BaseModel):
     time_utc: str
     timezone: str

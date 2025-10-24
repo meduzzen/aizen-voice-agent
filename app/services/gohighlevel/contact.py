@@ -1,12 +1,13 @@
 from pydantic import ValidationError
+
 from app.core.config.config import settings
 from app.core.config.enums import GoHighLevel
 from app.schemas.gohighlevel.contact import (
     ContactBase,
     ContactDetail,
     ContactUpdate,
-    CustomFieldSchema,
     CreateContactRequest,
+    CustomFieldSchema,
 )
 from app.services.gohighlevel.gohighlevel import GoHighLevelService
 
@@ -28,13 +29,16 @@ class Contact(GoHighLevelService):
     ):
         try:
             request = CreateContactRequest(
-                firstName=firstName, lastName=lastName, phone=phone, companyName=companyName,
+                firstName=firstName,
+                lastName=lastName,
+                phone=phone,
+                companyName=companyName,
             )
         except ValidationError as exc:
-            error_msg = repr(exc.errors()[0]['type'])
+            error_msg = repr(exc.errors()[0]["type"])
             self.log(f"[CONTACT] Validation Error: {error_msg}")
             return {"error": error_msg}
-        
+
         if customFields is None:
             customFields = [
                 CustomFieldSchema(
@@ -45,7 +49,12 @@ class Contact(GoHighLevelService):
             ]
 
         payload = ContactBase(
-            firstName=request.firstName, lastName=request.lastName, phone=request.phone, companyName=request.companyName, tags=tags, customFields=customFields
+            firstName=request.firstName,
+            lastName=request.lastName,
+            phone=request.phone,
+            companyName=request.companyName,
+            tags=tags,
+            customFields=customFields,
         ).model_dump(by_alias=True, exclude_none=True)
 
         payload["locationId"] = settings.gohighlevel.LOCATION_ID

@@ -86,44 +86,32 @@ class Prompts(StrEnum):
     - Company name and its brief description
 
     Contact created successfully. Use {response_text} only as internal context — never expose it directly.
-    
+
     If the response contains "error" or "is required":
       - Politely explain to the user that the field from the error is mandatory and without it, you will not be able to save the user to the database and book a call.
       - Ask him again to say the missing field.
-      
+
     # CURRENT STATE TRANSITION: 4_get_company_name -> 5_get_available_slots
 
     YOU MUST NOW PROCEED TO STATE "5_get_available_slots" and ask the user if they would like to schedule an appointment with the Meduzzen team:`
 
     Duplicate text: {duplicate_text}
     """
-    
+
     CONVERT_TIME_INSTRUCTION: str = """
     [Insert a natural short pause, as if converting time, before responding.]
 
-    This tool converts a given UTC time to a user's local timezone or into a custom format.
-
-    USAGE:
-    - Input: UTC time (ISO 8601, e.g., "2025-10-21T14:00:00Z") and the target timezone (e.g., "America/Toronto").
-    - Optional: specify a custom output format (default is "%Y-%m-%dT%H:%M:%S%z" for GoHighLevel).
-
     IMPORTANT:
-    - Always convert UTC appointment slots to the user's local time before presenting them.
-    - When confirming an appointment, convert the selected local time back to ISO 8601 with proper timezone offset for GoHighLevel.
+    - Tell the user the converted time.
     - Handle errors gracefully: if conversion fails, inform the user politely and ask them to re-enter the time.
 
     EXAMPLES:
-    1. Converting free slots for display:
-      Input: "2025-10-22T14:00:00Z", "America/Toronto"
-      Output: "2025-10-22T10:00:00-04:00"
-      LLM response: "We have openings tomorrow at 10:00 AM, 11:30 AM, and 3:00 PM your local time. Which works best for you?"
+    Output: "[2025-10-22T10:00:00-04:00, 2025-10-22T11:00:00-04:00]"
+    LLM response: "We have openings October 22th at 10:00 AM and at 11:00 AM. Which one works best for you?"
 
-    2. Converting user's selected time back to UTC for booking:
-      Input: "2025-10-22T10:00:00", "America/Toronto"
-      Output: "2025-10-22T14:00:00Z"
-      LLM then calls `create_appointment` with this UTC time.
+    CONTEXT:
+    {response_text}
     """
-
 
     GET_SLOTS_INSTRUCTION: str = """
     [Insert a natural short pause, as if checking the calendar, before responding.]
@@ -140,8 +128,10 @@ class Prompts(StrEnum):
 
     Friendly response example:
     "I have openings tomorrow at 10:00, 13:00, and 16:00 your local time. Which works best for you?"
-    """
 
+    Context:
+    {response_text}
+    """
 
     CREATE_APPOINTMENT_INSTRUCTION: str = """
     [Insert a natural short pause, as if confirming the booking, before responding.]
@@ -157,7 +147,7 @@ class Prompts(StrEnum):
       - Explain that the selected time slot is no longer available
       - Offer to show updated available times
       - Ask: "Would you like me to check what times are available now?"
-      
+
     Example: "Oh, I'm sorry! It looks like that time slot was just booked by someone else. Would you like me to show you the latest available times?"
 
     If the response is successful (contains appointment details like appointmentId):
@@ -165,11 +155,10 @@ class Prompts(StrEnum):
       - Confirm the date and time in their local timezone (use `convert_time` if needed)
       - Let them know the team will contact them
       - Ask if there's anything else you can help with
-      
+
     Example: "Perfect! I've scheduled your call for tomorrow at 2:00 PM Toronto time. Our team will reach out to you shortly. Is there anything else I can help you with?"
     """
 
-    
     TRANSCRIPTION_PROMPT: str = """
     Transcribe the audio word by word, emitting each word as soon as it is recognized.
     Do not cut words. Treat numbers carefully: recognize digits zero to nine, as well as numbers like ten, eleven, twelve, twenty, thirty, forty, ninety.
@@ -196,7 +185,7 @@ class Prompts(StrEnum):
       4. The client explicitly states that they want to contact, speak with, or receive follow-up from Meduzzen.
     - Once you've collected all contact details (first name, last name, phone, company) and created the contact using create_contact tool, you MUST immediately proceed to offer appointment scheduling.
     - Do not end the conversation after creating a contact. The flow is: collect info -> create contact -> offer appointment -> end conversation.
-    
+
     **CRITICAL RULE ABOUT CONVERSATIONAL STATES**
     - Do NOT call or execute state names as tools.
     - ConversationalState objects are not tools. They represent conversation logic and should only control the dialogue flow internally.

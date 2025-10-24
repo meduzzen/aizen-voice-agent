@@ -44,27 +44,20 @@ TOOLS_SALESBOT = [
     },
     {
         "name": "convert_time",
-        "description": "Converts a given UTC time to the user's local timezone in ISO 8601 format or custom format.",
+        "description": "Converts one or more UTC times to the user's local timezone in ISO 8601 format or custom format.",
         "parameters": {
             "type": "object",
             "properties": {
                 "time_utc": {
-                    "type": "string",
-                    "description": "The time in UTC to convert, in ISO 8601 format (e.g., '2025-10-21T14:00:00Z')."
+                    "description": "A UTC time string or a list of UTC time strings in ISO 8601 format (e.g., '2025-10-21T14:00:00Z').",
+                    "oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}],
                 },
-                "timezone": {
-                    "type": "string",
-                    "description": "The target timezone to convert to (e.g., 'America/Toronto')."
-                },
-                "output_format": {
-                    "type": "string",
-                    "description": "Optional. The strftime format to return the local time (default '%Y-%m-%dT%H:%M:%S%z')."
-                }
+                "timezone": {"type": "string", "description": "The target timezone to convert to (e.g., 'Canada/Toronto')."},
             },
             "required": ["time_utc", "timezone"],
-            "additionalProperties": False
+            "additionalProperties": False,
         },
-        "strict": True
+        "strict": True,
     },
     {
         "name": "create_contact",

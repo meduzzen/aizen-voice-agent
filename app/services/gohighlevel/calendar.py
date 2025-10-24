@@ -35,8 +35,6 @@ class Calendar(GoHighLevelService):
                     f"/calendars/{calendar_info.calendarId}/free-slots?startDate={calendar_info.startDate}&endDate={calendar_info.endDate}",
                 )
 
-                self.log(f"{response_json}")
-
                 if not isinstance(response_json, dict):
                     raise ValueError("API returned unexpected response format")
 

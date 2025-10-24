@@ -128,9 +128,7 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                     next_step="5_get_available_slots",
                     condition="ALWAYS move to this state after contact is successfully created. This is MANDATORY.",
                 ),
-                Transition(
-                    next_step="4_get_company_name", 
-                    condition="If invalid or empty company name input - ask again."),
+                Transition(next_step="4_get_company_name", condition="If invalid or empty company name input - ask again."),
             ],
         ),
         ConversationalState(
@@ -141,10 +139,11 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "If they say YES:",
                 "  1. Ask the user in which city/timezone they are located.",
                 "  2. Wait for timezone confirmation from user.",
-                "  3. ONLY after receiving a timezone from the user, CALL THE TOOL `get_free_appointment_slots` with the user's timezone.",
-                "  4. AFTER receiving UTC slots from the API, CALL THE TOOL `convert_time` to convert each slot into the user's local time before presenting them.",
-                "  5. Immediately after receiving free slots, present them in a friendly way (e.g., 'We have openings at 10:00, 11:30, and 15:00. Which one works best for you?').",
-                "  6. Ask the user to select one of the available times.",
+                "  3. ONLY after receiving a timezone from the user, ALWAYS politely ask user to wait a little bit before you can get the available slots",
+                "  4. CALL THE TOOL `get_free_appointment_slots` with the user's timezone.",
+                "  5. AFTER receiving UTC slots from the API, CALL THE TOOL `convert_time` to convert each slot into the user's local time before presenting them.",
+                "  6. Immediately after receiving free slots, present them in a friendly way (e.g., 'We have openings at 10:00, 11:30, and 15:00. Which one works best for you?').",
+                "  7. Ask the user to select one of the available times.",
                 "If they say NO:",
                 "  1. Acknowledge politely: 'No problem! Feel free to reach out whenever you're ready.'",
                 "If their response is unclear, gently ask for clarification.",
@@ -152,7 +151,8 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
             examples=[
                 "Would you like to schedule a call with our team to discuss your project in detail?",
                 "Please tell me which city or country you are in so that I can select free slots for your local time.",
-                "After timezone: Perfect! Here are our available times: 10:00, 11:30, 15:00. Which works best for you?",
+                "After timezone: Please wait a moment so I can check our available times for you...",
+                "Perfect! Here are our available times: 10:00, 11:30, 15:00. Which works best for you?",
                 "If no: No problem! Feel free to reach out whenever you're ready.",
             ],
             transitions=[
@@ -201,5 +201,5 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 ),
             ],
         ),
-    ],      
+    ],
 )
