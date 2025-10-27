@@ -71,13 +71,25 @@ class GoHighLevelClient:
     async def delete_contact(self):
         await self.contact_service.delete_contact(self.contact_id)
         self.contact_id = None
-
+        
+    async def get_contact(self):
+        if not self.contact_id:
+            return None
+        return await self.contact_service.get_contact(self.contact_id)
+    
     async def create_appointment(self, startTime: str):
         appointment = await self.appointment_service.create_appointment(self.contact_id, startTime)
         if isinstance(appointment, str):
             return appointment
 
-        await self.contact_service.update_contact(contact_id=self.contact_id, tags=[GoHighLevel.ALREADY_BOOKED])
+        contact = await self.get_contact()
+        
+        existing_tags = contact.get("tags", []) if contact else []
+        existing_tags_str = [t.value if isinstance(t, GoHighLevel) else t for t in existing_tags]
+
+        if GoHighLevel.ALREADY_BOOKED not in existing_tags_str:
+            existing_tags_str.append(GoHighLevel.ALREADY_BOOKED)
+        await self.update_contact(tags=existing_tags_str)
         return appointment
 
     async def delete_appointment(self, appointment_id: str):

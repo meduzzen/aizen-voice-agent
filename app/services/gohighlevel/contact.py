@@ -114,3 +114,9 @@ class Contact(GoHighLevelService):
     async def delete_contact(self, contact_id: str):
         data = await self.send_request("DELETE", f"/contacts/{contact_id}", headers=self.headers)
         self.log(f"Contact deleted: {data}")
+        
+    async def get_contact(self, contact_id: str):
+        data = await self.send_request("GET", f"/contacts/{contact_id}", headers=self.headers)
+        self.log(f"Contact retrieved: {data}")
+        return data.get("contact", {}) if isinstance(data, dict) else {}
+
