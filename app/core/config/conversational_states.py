@@ -87,10 +87,10 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "Once waiting is over, call the `get_phone_number` tool with the user's transcript to extract and save the number.",
                 "Once you 3 seconds is over, repeat the number back digit by digit and ALWAYS ask: 'You said [number], correct?'",
                 "If the user says 'no' or indicates the number is incorrect, politely ask them to repeat the number. Always repeat only the most recent number provided by the user.",
-                "If the user said 'yes' and confirms phone number, move to the next state `4_get_company_name` and NEVER call `get_phone_number` tool again."
+                "If the user said 'yes' and confirms phone number, move to the next state `4_check_company_memory` and NEVER call `get_phone_number` tool again."
                 "Continue this loop until the user confirms the number is correct. Do not proceed until a valid phone number is confirmed."
                 "You can move on to the next state ONLY if user confirms phone number."
-                "After user confirms phone number, go to next step `4_get_company_name`.",
+                "After user confirms phone number, go to next step `4_check_company_memory`.",
             ],
             examples=[
                 "May I have your phone number in full international format, including the country code? For example: +380XXXXXXXXX.",
@@ -99,40 +99,79 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "You said +380-67-765-4321, correct?",
             ],
             transitions=[
-                Transition(next_step="4_get_company_name", condition="Once a valid phone number is confirmed."),
+                Transition(next_step="4_check_company_memory", condition="Once a valid phone number is confirmed."),
                 Transition(next_step="3_get_and_verify_phone", condition="If invalid, unclear, or rejected by the user."),
             ],
         ),
         ConversationalState(
-            id="4_get_company_name",
-            description="Ask for company name and brief description, summarize, create contact, then proceed to appointment.",
+            id="4_check_company_memory",
+            description="Check if company exists in memory",
             instructions=[
-                "Politely ask, 'Could you please share your company name and briefly describe what your company does?'",
-                "Examples of what to expect:",
-                "  - 'We're called Bright Homes and we're a real estate agency'",
-                "  - 'Smith & Partners, we're a law firm focusing on corporate law'",
-                "Do NOT verify or spell back the company name; just accept it.",
-                "If the response is empty or unclear, politely ask again until a valid company name is received.",
-                "Once you receive the company name and description:",
+                "STEP 1: ALWAYS check your memory for the user's company name and description. Summarize this into format: 'CompanyName - brief description' (max 10 words for description)",
+                "",
+                "STEP 2: Based on memory check, follow one of two paths:",
+                "",
+                "PATH A - If company name EXISTS in memory:",
+                "  - Politely confirm it by saying: 'I see your company is [company name]. I'll record it in our database.'",
+                "  - Immediately call `create_contact` tool with this companyName",
+                "  - Immediately transition to state 6_get_available_slots",
+                "",
+                "PATH B - If NO company name is stored in memory:",
+                "  - Immediately transition to state 5_ask_company_name",
+            ],
+            examples=[
+                "I see your company is Bright Homes. I'll record it in our database.",
+                "No company found in memory, moving to ask for company details.",
+            ],
+            transitions=[
+                Transition(
+                    next_step="6_get_available_slots",
+                    condition="After successfully creating contact from memory",
+                ),
+                Transition(
+                    next_step="5_ask_company_name",
+                    condition="If no company name found in memory",
+                ),
+            ],
+        ),
+        ConversationalState(
+            id="5_ask_company_name",
+            description="Ask for company name and brief description",
+            instructions=[
+                "STEP 1: Politely ask for company name and description:",
+                "  - 'Could you please share your company name and briefly describe what your company does?'",
+                "",
+                "STEP 2: Wait for user response",
+                "  - Examples of expected responses:",
+                "    - 'We're called Bright Homes and we're a real estate agency'",
+                "    - 'Smith & Partners, we're a law firm focusing on corporate law'",
+                "  - Do NOT verify or spell back the company name; just accept it",
+                "  - If response is empty or unclear, politely ask again until valid company name is received",
+                "",
+                "STEP 3: Once you receive company name and description:",
                 "  1. Summarize into format: 'CompanyName - brief description' (max 10 words for description)",
-                "  2. After you get CompanyName and description - call `create_contact` tool with the summarized companyName",
-                "  3. DO NOT END - immediately transition to state 5_get_available_slots",
+                "  2. Call `create_contact` tool with the summarized companyName",
+                "  3. Immediately transition to state 6_get_available_slots",
             ],
             examples=[
                 "Could you please share your company name and briefly describe what your company does?",
                 "What's your company name and what does your company do?",
                 "After receiving: 'Perfect, thank you! Would you like to schedule an appointment?'",
+                "If unclear response: 'I didn't quite catch that. Could you tell me your company name and what you do?'",
             ],
             transitions=[
                 Transition(
-                    next_step="5_get_available_slots",
-                    condition="ALWAYS move to this state after contact is successfully created. This is MANDATORY.",
+                    next_step="6_get_available_slots",
+                    condition="After successfully creating contact with provided company name",
                 ),
-                Transition(next_step="4_get_company_name", condition="If invalid or empty company name input - ask again."),
+                Transition(
+                    next_step="5_ask_company_name",
+                    condition="If user provides empty or unclear company name - ask again",
+                ),
             ],
         ),
         ConversationalState(
-            id="5_get_available_slots",
+            id="6_get_available_slots",
             description="Ask user for timezone, retrieve available slots, and present them in user's timezone.",
             instructions=[
                 "Firstly, ALWAYS ask the user if they would like to schedule an appointment with the Meduzzen team. Don't ask about the timezones or slots, just find out if the user wants an appointment. NEVER call any tools until you know the user's response.",
@@ -157,7 +196,7 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
             ],
             transitions=[
                 Transition(
-                    next_step="6_create_appointment",
+                    next_step="7_create_appointment",
                     condition="After user selects a specific time slot.",
                 ),
                 Transition(
@@ -165,13 +204,13 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                     condition="If user declines appointment offer.",
                 ),
                 Transition(
-                    next_step="5_get_available_slots",
+                    next_step="6_get_available_slots",
                     condition="If user's timezone choice or slot selection is unclear - ask again.",
                 ),
             ],
         ),
         ConversationalState(
-            id="6_create_appointment",
+            id="7_create_appointment",
             description="Confirm selected time, create the appointment, and handle conflicts.",
             instructions=[
                 "Confirm the user's selected time slot.",
@@ -179,7 +218,7 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                 "CALL THE TOOL `create_appointment` with the appointment details.",
                 "If the slot is no longer available:",
                 "  1. Politely inform the user: 'Oh, it seems that time was just taken. Let me check the latest available times for you...'",
-                "  2. TRANSITION back to `5_get_available_slots` to show updated slots.",
+                "  2. TRANSITION back to `6_get_available_slots` to show updated slots.",
                 "If the appointment is successfully created:",
                 "  1. Confirm the booking with all details.",
                 "  2. Thank the user.",
@@ -196,7 +235,7 @@ CONVERSATIONAL_STATES_WEBSALES_BOT = ConversationFlow(
                     condition="After appointment is successfully created.",
                 ),
                 Transition(
-                    next_step="5_get_available_slots",
+                    next_step="6_get_available_slots",
                     condition="If the selected slot is no longer available - show updated slots.",
                 ),
             ],

@@ -56,3 +56,20 @@ class CreateContactRequest(BaseModel):
         if not v or (isinstance(v, str) and not v.strip()):
             raise ValueError("Field cannot be empty")
         return v
+
+class CustomFieldValueSchema(BaseModel):
+    id: str
+    key: str | None = None
+    value: str | None = None
+    
+class ContactDetailResponse(BaseModel):
+    contact_id: str = Field(..., alias="id")
+    firstName: str = Field(..., alias="firstName")
+    lastName: str = Field(..., alias="lastName")
+    phone: str
+    companyName: str = Field(..., alias="companyName")
+    tags: list[str] = ["From AIZen"]
+    customFields: list[CustomFieldValueSchema] | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
