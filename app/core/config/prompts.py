@@ -57,7 +57,7 @@ class Prompts(StrEnum):
     Do NOT interpret, do NOT add country codes, do NOT reformat.
     Save the exact number as spoken.
     Then ask: 'You said [exact_number], correct?'
-    If confirmed -> next state: `4_get_company_name`
+    If confirmed -> next state: `4_check_company_memory`
     If 'no' -> ask again
     """
 
@@ -91,9 +91,9 @@ class Prompts(StrEnum):
       - Politely explain to the user that the field from the error is mandatory and without it, you will not be able to save the user to the database and book a call.
       - Ask him again to say the missing field.
 
-    # CURRENT STATE TRANSITION: 4_get_company_name -> 5_get_available_slots
+    # CURRENT STATE TRANSITION: 4_check_company_memory or 5_ask_company_name -> 6_get_available_slots
 
-    YOU MUST NOW PROCEED TO STATE "5_get_available_slots" and ask the user if they would like to schedule an appointment with the Meduzzen team:`
+    YOU MUST NOW PROCEED TO STATE "6_get_available_slots" and ask the user if they would like to schedule an appointment with the Meduzzen team:`
 
     Duplicate text: {duplicate_text}
     """
