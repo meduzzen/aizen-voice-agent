@@ -63,6 +63,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: ".env"
           target: "/tmp/aizen"
+          tar_exec: ""
       - uses: actions/checkout@v2
 
       - name: Build Docker image
@@ -79,6 +80,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "aizen.tar.gz"
           target: "/tmp/aizen"
+          tar_exec: ""
 
       - name: Deploy Docker image on server
         uses: appleboy/ssh-action@master
