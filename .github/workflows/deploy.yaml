@@ -81,12 +81,12 @@ jobs:
       - name: Build the Docker image
         env:
           TAG: ${{ steps.set_tag.outputs.TAG }}
-        run: docker build -t ${{ env.APP_IMAGE_NAME }}:latest -t ${{ env.APP_IMAGE_NAME }}:${{ env.TAG }} .
+        run: docker build -t aizen:latest -t aizen:${{ env.TAG }} .
 
       - name: Save Docker image
         env:
           TAG: ${{ steps.set_tag.outputs.TAG }}
-        run: docker save ${{ env.APP_IMAGE_NAME }}:latest ${{ env.APP_IMAGE_NAME }}:${{ env.TAG }} | gzip > $GITHUB_WORKSPACE/aizen.tar.gz
+        run: docker save aizen:latest aizen:${{ env.TAG }} | gzip > $GITHUB_WORKSPACE/aizen.tar.gz
 
       - name: Copy Docker Image to server
         run: |
