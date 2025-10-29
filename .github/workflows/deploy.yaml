@@ -63,7 +63,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: ".env"
           target: "/tmp/aizen"
-          tar_exec: ""
       - uses: actions/checkout@v2
 
       - name: Build Docker image
@@ -78,9 +77,8 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "aizen.tar.gz"
+          source: "aizen/"
           target: "/tmp/aizen"
-          tar_exec: ""
 
       - name: Deploy Docker image on server
         uses: appleboy/ssh-action@master
@@ -90,12 +88,11 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             sudo docker load < /tmp/aizen/aizen.tar.gz
-            docker stop aizen_web_1 || true
-            docker rm aizen_web_1 || true
+            docker stop aizen-app || true
+            docker rm aizen-app || true
             sudo docker run -d \
             --restart unless-stopped \
             --env-file /tmp/aizen/.env \
-            --name aizen_web_1 \
+            --name aizen-app \
             -p 8000:8000 \
-            --network aizen_network \
             aizen:latest
