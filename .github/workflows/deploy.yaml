@@ -28,32 +28,45 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
+      - name: Configure SSH for Server Access
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ${{ secrets.SSH_KEY_NAME }}
+          chmod 600 ${{ secrets.SSH_KEY_NAME }}
+          touch ~/.ssh/known_hosts || true
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
       - run: |
           echo "HOST=${{ secrets.HOST }}" > .env
-          echo "PORT=${{ vars.PORT }}" >> .env
-          echo "RELOAD=${{ vars.RELOAD }}" >> .env
-          echo "ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS}}" >> .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
+          echo "RELOAD=${{ secrets.RELOAD }}" >> .env
+          echo "ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS}}" >> .env
           echo "PUBLIC_HOST=${{ secrets.PUBLIC_HOST}}" >> .env
-          echo "UV_WORKERS=${{ vars.UV_WORKERS}}" >> .env
+          echo "UV_WORKERS=${{ secrets.UV_WORKERS}}" >> .env
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY}}" >> .env
-          echo "WSS_REALTIME_MODEL=${{ vars.WSS_REALTIME_MODEL}}" >> .env
-          echo "VOICE=${{ vars.VOICE}}" >> .env
-          echo "TEMPERATURE=${{ vars.TEMPERATURE}}" >> .env
-          echo "CHAT_MODEL=${{ vars.CHAT_MODEL}}" >> .env
-          echo "TRANSCRIPTION_MODEL=${{ vars.TRANSCRIPTION_MODEL}}" >> .env
+          echo "WSS_REALTIME_MODEL=${{ secrets.WSS_REALTIME_MODEL}}" >> .env
+          echo "VOICE=${{ secrets.VOICE}}" >> .env
+          echo "TEMPERATURE=${{ secrets.TEMPERATURE}}" >> .env
+          echo "CHAT_MODEL=${{ secrets.CHAT_MODEL}}" >> .env
+          echo "TRANSCRIPTION_MODEL=${{ secrets.TRANSCRIPTION_MODEL}}" >> .env
           echo "ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY}}" >> .env
           echo "ELEVENLABS_VOICE_ID=${{ secrets.ELEVENLABS_VOICE_ID}}" >> .env
           echo "ELEVENLABS_MODEL_ID=${{ secrets.ELEVENLABS_MODEL_ID}}" >> .env
           echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID}}" >> .env
           echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN}}" >> .env
           echo "TWILIO_NUMBER=${{ secrets.TWILIO_NUMBER}}" >> .env
-          echo "TWILIO_VOICE=${{ vars.TWILIO_VOICE}}" >> .env
-          echo "COLLECTION_NAME=${{ vars.COLLECTION_NAME}}" >> .env
+          echo "TWILIO_VOICE=${{ secrets.TWILIO_VOICE}}" >> .env
+          echo "COLLECTION_NAME=${{ secrets.COLLECTION_NAME}}" >> .env
           echo "TOKEN_GOHIGHLEVEL=${{ secrets.TOKEN_GOHIGHLEVEL}}" >> .env
           echo "LOCATION_ID=${{ secrets.LOCATION_ID}}" >> .env
           echo "CALENDAR_ID=${{ secrets.CALENDAR_ID}}" >> .env
           echo "CUSTOM_FIELDS_ID=${{ secrets.CUSTOM_FIELDS_ID}}" >> .env
           echo "CUSTOM_FIELDS_KEY=${{ secrets.CUSTOM_FIELDS_KEY}}" >> .env
+
+      - name: Create tag from GitHub SHA
+        id: set_tag
+        run: |
+          echo "TAG=`echo ${{ github.sha }} | cut -c1-7`" >> $GITHUB_OUTPUT
 
       - name: Copy .env file to server
         uses: appleboy/scp-action@master
@@ -65,20 +78,19 @@ jobs:
           target: "/tmp/aizen"
       - uses: actions/checkout@v2
 
-      - name: Build Docker image
-        run: docker build . -t aizen:latest
+      - name: Build the Docker image
+        env:
+          TAG: ${{ steps.set_tag.outputs.TAG }}
+        run: docker build -t ${{ env.APP_IMAGE_NAME }}:latest -t ${{ env.APP_IMAGE_NAME }}:${{ env.TAG }} .
 
       - name: Save Docker image
-        run: docker save aizen:latest | gzip > aizen.tar.gz
+        env:
+          TAG: ${{ steps.set_tag.outputs.TAG }}
+        run: docker save ${{ env.APP_IMAGE_NAME }}:latest ${{ env.APP_IMAGE_NAME }}:${{ env.TAG }} | gzip > $GITHUB_WORKSPACE/aizen.tar.gz
 
-      - name: Copy Docker image to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "aizen.tar.gz"
-          target: "/tmp/aizen"
+      - name: Copy Docker Image to server
+        run: |
+          scp -i ${{ secrets.SERVER_SSH_KEY }} $GITHUB_WORKSPACE/aizen.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/aizen/aizen.tar.gz
 
       - name: Deploy Docker image on server
         uses: appleboy/ssh-action@master
