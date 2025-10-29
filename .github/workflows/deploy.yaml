@@ -31,8 +31,8 @@ jobs:
       - name: Configure SSH for Server Access
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ${{ secrets.SSH_KEY_NAME }}
-          chmod 600 ${{ secrets.SSH_KEY_NAME }}
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/ssh_key
+          chmod 600 ~/.ssh/ssh_key
           touch ~/.ssh/known_hosts || true
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
       - name: Set up environment variables
