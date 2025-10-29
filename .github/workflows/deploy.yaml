@@ -1,0 +1,96 @@
+name: Deploy the application to the server
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync
+
+
+  deploy:
+    name: Deploy on server
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - run: |
+          echo "HOST=${{ secrets.HOST }}" > .env
+          echo "PORT=${{ vars.PORT }}" >> .env
+          echo "RELOAD=${{ vars.RELOAD }}" >> .env
+          echo "ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS}}" >> .env
+          echo "PUBLIC_HOST=${{ secrets.PUBLIC_HOST}}" >> .env
+          echo "UV_WORKERS=${{ vars.UV_WORKERS}}" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY}}" >> .env
+          echo "WSS_REALTIME_MODEL=${{ vars.WSS_REALTIME_MODEL}}" >> .env
+          echo "VOICE=${{ vars.VOICE}}" >> .env
+          echo "TEMPERATURE=${{ vars.TEMPERATURE}}" >> .env
+          echo "CHAT_MODEL=${{ vars.CHAT_MODEL}}" >> .env
+          echo "TRANSCRIPTION_MODEL=${{ vars.TRANSCRIPTION_MODEL}}" >> .env
+          echo "ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY}}" >> .env
+          echo "ELEVENLABS_VOICE_ID=${{ secrets.ELEVENLABS_VOICE_ID}}" >> .env
+          echo "ELEVENLABS_MODEL_ID=${{ secrets.ELEVENLABS_MODEL_ID}}" >> .env
+          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID}}" >> .env
+          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN}}" >> .env
+          echo "TWILIO_NUMBER=${{ secrets.TWILIO_NUMBER}}" >> .env
+          echo "TWILIO_VOICE=${{ vars.TWILIO_VOICE}}" >> .env
+          echo "COLLECTION_NAME=${{ vars.COLLECTION_NAME}}" >> .env
+          echo "TOKEN_GOHIGHLEVEL=${{ secrets.TOKEN_GOHIGHLEVEL}}" >> .env
+          echo "LOCATION_ID=${{ secrets.LOCATION_ID}}" >> .env
+          echo "CALENDAR_ID=${{ secrets.CALENDAR_ID}}" >> .env
+          echo "CUSTOM_FIELDS_ID=${{ secrets.CUSTOM_FIELDS_ID}}" >> .env
+          echo "CUSTOM_FIELDS_KEY=${{ secrets.CUSTOM_FIELDS_KEY}}" >> .env
+
+      - name: Copy .env file to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: ".env"
+          target: "/tmp/aizen"
+      - uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build . -t aizen:latest
+
+      - name: Save Docker image
+        run: docker save aizen:latest | gzip > aizen.tar.gz
+
+      - name: Copy Docker image to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "aizen.tar.gz"
+          target: "/tmp/aizen"
+
+      - name: Deploy Docker image on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sudo docker load < /tmp/aizen/aizen.tar.gz
+            docker stop aizen_web_1 || true
+            docker rm aizen_web_1 || true
+            sudo docker run -d \
+            --restart unless-stopped \
+            --env-file /tmp/aizen/.env \
+            --name aizen_web_1 \
+            -p 8000:8000 \
+            --network aizen_network \
+            aizen:latest
