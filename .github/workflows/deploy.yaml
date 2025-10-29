@@ -90,7 +90,7 @@ jobs:
 
       - name: Copy Docker Image to server
         run: |
-          scp -i ${{ secrets.SERVER_SSH_KEY }} $GITHUB_WORKSPACE/aizen.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/aizen/aizen.tar.gz
+          scp -i ${{ secrets.SERVER_SSH_KEY }} $GITHUB_WORKSPACE/aizen.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/aizen
 
       - name: Deploy Docker image on server
         uses: appleboy/ssh-action@master
