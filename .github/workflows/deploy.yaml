@@ -62,6 +62,7 @@ jobs:
             echo "CALENDAR_ID=${{ secrets.CALENDAR_ID}}" >> .env
             echo "CUSTOM_FIELDS_ID=${{ secrets.CUSTOM_FIELDS_ID}}" >> .env
             echo "CUSTOM_FIELDS_KEY=${{ secrets.CUSTOM_FIELDS_KEY}}" >> .env
+            echo "EMBEDDING_MODEL=${{ secrets.EMBEDDING_MODEL}}" >> .env
 
       - name: Create tag from GitHub SHA
         id: set_tag
