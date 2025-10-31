@@ -17,7 +17,7 @@ from app.services.knowledge_base import KnowledgeBaseService
 from app.services.summary import SummaryService
 from app.services.twilio_service import TwilioService
 from app.utils.format_transcript import format_transcript
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.web_bot import Prompts
 
 
 class ToolService(LogMixin, LLMMixin):

@@ -2,7 +2,7 @@ from uuid import UUID
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.web_bot import Prompts
 from app.core.mixins import LogMixin, LLMMixin
 from app.schemas.messenger import PostSummaryOptions
 from app.schemas.summary import MessageSchema, Speaker, SummarySchema

@@ -4,7 +4,7 @@ from typing import Any
 
 import websockets
 
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.web_bot import Prompts
 from app.core.mixins import LogMixin
 from app.schemas.config import InitMessages, SessionConfig
 

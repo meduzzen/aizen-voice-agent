@@ -3,7 +3,7 @@ import random
 from app.core.config.agent.tools import TOOLS_SALESBOT
 from app.core.config.conversational_states import CONVERSATIONAL_STATES_WEBSALES_BOT
 from app.core.config.init_messages import INIT_MESSAGES
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.system_prompt import SYSTEM_PROMPT
 from app.core.mixins import LogMixin
 from app.schemas.config import InitMessages, SessionConfig, Tool
 from app.services.base_bot import BaseBotService
@@ -29,7 +29,7 @@ class WebBotService(BaseBotService, LogMixin):
     async def initialize_config(self) -> None:
         self.log(f"Chosen init message: {self.chosen_message}")
         session_config = SessionConfig(
-            instructions=Prompts.SYSTEM_PROMPT.format(
+            instructions=SYSTEM_PROMPT.format(
                 chosen_message=self.chosen_message,
                 conversational_states=CONVERSATIONAL_STATES_WEBSALES_BOT,
                 scenario="",

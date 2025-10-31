@@ -2,7 +2,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from app.core import settings
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.transcription import TRANSCRIPTION_PROMPT
 
 
 class Parameter(BaseModel):
@@ -29,7 +29,7 @@ class SessionConfig(BaseModel):
     input_audio_transcription: dict[str, str] = Field(
         default={
             "model": settings.open_ai.TRANSCRIPTION_MODEL,
-            "prompt": Prompts.TRANSCRIPTION_PROMPT,
+            "prompt": TRANSCRIPTION_PROMPT,
         }
     )
     input_audio_noise_reduction: dict[str, str] = Field(default={"type": "far_field"})
