@@ -1,19 +1,17 @@
 from uuid import UUID
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
-from langchain_openai import ChatOpenAI
 
-from app.core import settings
 from app.core.config.prompts import Prompts
-from app.core.mixins import LogMixin
+from app.core.mixins import LogMixin, LLMMixin
 from app.schemas.messenger import PostSummaryOptions
 from app.schemas.summary import MessageSchema, Speaker, SummarySchema
 
 
-class SummaryService(LogMixin):
+class SummaryService(LogMixin, LLMMixin):
     def __init__(self):
         self.call_transcription: dict[UUID, list[MessageSchema]] = {}
-        self.llm = self.get_llm()
+        self.llm = self.get_llm(SummarySchema)
 
     def get_full_transcript(self, session_id: UUID) -> list[MessageSchema]:
         return self.call_transcription.get(session_id, [])
@@ -23,11 +21,6 @@ class SummaryService(LogMixin):
             self.call_transcription[session_id].append(MessageSchema(type=speaker, content=message))
         else:
             self.call_transcription[session_id] = [MessageSchema(type=speaker, content=message)]
-
-    @staticmethod
-    def get_llm():
-        llm = ChatOpenAI(model=settings.open_ai.CHAT_MODEL, api_key=settings.open_ai.OPENAI_API_KEY)
-        return llm.with_structured_output(SummarySchema)
 
     async def create_summary(self, session_id: UUID, phone_number: str | None = None) -> SummarySchema:
         summary_prompt = self.summary_prompt(session_id=session_id)

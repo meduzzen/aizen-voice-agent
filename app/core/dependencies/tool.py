@@ -30,8 +30,6 @@ async def get_web_bot_tool_service(
             "create_appointment",
             "wait_for",
             "get_phone_number",
-            "convert_time",
-            "get_contact_info",
         ],
     )
 

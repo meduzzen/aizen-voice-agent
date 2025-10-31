@@ -71,6 +71,7 @@ class KnowledgeBaseService:
                 persist_directory=self.persist_directory,
                 collection_name=self.collection_name,
             )
+        self.db.persist()
 
     async def retrieve(self, query: str, k: int = 3) -> str:
         if not self.db:

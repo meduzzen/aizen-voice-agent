@@ -94,15 +94,6 @@ class Prompts(StrEnum):
 
     Return: firstName, lastName, phone, companyName
     """
-    
-    GET_CONTACT_INFO_INSTRUCTION: str = """
-    Contact information has been successfully extracted:
-    {response_text}
-
-    Now immediately call the `create_contact` tool with this exact extracted data to save the contact to the database.
-    Do NOT modify any of the values - use them exactly as provided.
-    """
-
     GET_SERVICE_DETAILS_INSTRUCTION = """
     [Insert a natural short pause, as if checking notes, before responding.]
 
@@ -121,12 +112,6 @@ class Prompts(StrEnum):
     CREATE_CONTACT_INSTRUCTION: str = """
     [Insert a natural short pause, as if checking notes, before responding.]
 
-    Before proceeding, collect the following information from the user using `get_contact_info` tool:
-    - First name
-    - Last name
-    - Phone number
-    - Company name and its brief description
-
     Contact created successfully. Use {response_text} only as internal context — never expose it directly.
 
     If the response contains "error" or "is required":
@@ -135,51 +120,34 @@ class Prompts(StrEnum):
 
     # CURRENT STATE TRANSITION: 4_check_company_memory or 5_ask_company_name -> 6_get_available_slots
 
-    YOU MUST NOW PROCEED TO STATE "6_get_available_slots" and ask the user if they would like to schedule an appointment with the Meduzzen team:`
+    YOU MUST NOW PROCEED TO STATE "6_get_available_slots" and ask the user if they would like to schedule an appointment with the Meduzzen team. You should NEVER go straight to search available slots after creating contact. ALWAYS ask first if the user wants this appointment.
 
     Duplicate text: {duplicate_text}
     """
-
-    CONVERT_TIME_INSTRUCTION: str = """
-    [Insert a natural short pause, as if converting time, before responding.]
+    GET_SLOTS_INSTRUCTION: str = """
+    [Insert a natural short pause, as if checking the calendar, before responding.]
 
     IMPORTANT:
-    - Tell the user the converted time.
-    - Handle errors gracefully: if conversion fails, inform the user politely and ask them to re-enter the time.
+    - The `get_free_appointment_slots` tool automatically searches for available slots AND converts them to the user's local timezone.
+    - If the timezone is not clear, politely ask for clarification.
+    - Present the available time slots in the user's local time in a friendly way.
+    - List 3-5 options and ask them to choose.
+    - Handle errors gracefully: if slot retrieval or conversion fails, inform the user politely and ask them to try again.
 
-    EXAMPLES:
-    Output: "[2025-10-22T10:00:00-04:00, 2025-10-22T11:00:00-04:00]"
-    LLM response: "We have openings October 22th at 10:00 AM and at 11:00 AM. Which one works best for you?"
+    EXAMPLE:
+    User: "I am in New York."
+    Tool returns: "[2025-10-22T10:00:00-04:00, 2025-10-22T11:00:00-04:00]" (already converted to NY timezone)
+    LLM response: "Perfect! We have openings October 22nd at 10:00 AM and 11:00 AM in your local time. Which one works best for you?"
+
+    Friendly response example:
+    "I have openings tomorrow at 10:00, 13:00, and 16:00 your local time. Which works best for you?"
 
     CONTEXT:
     {response_text}
     """
 
-    GET_SLOTS_INSTRUCTION: str = """
-    [Insert a natural short pause, as if checking the calendar, before responding.]
-
-    IMPORTANT:
-    - Always use the `convert_time` tool to convert all UTC slots to the user's local timezone before presenting them.
-    - If the timezone is not clear, politely ask for clarification.
-    - Present the available time slots in the user's local time in a friendly way.
-    - List 3-5 options and ask them to choose.
-
-    Example:
-    User: "I am in New York."
-    Slot shows "14:00:00" UTC -> Use `convert_time` tool -> Present as "10:00 AM New York time."
-
-    Friendly response example:
-    "I have openings tomorrow at 10:00, 13:00, and 16:00 your local time. Which works best for you?"
-
-    Context:
-    {response_text}
-    """
-
     CREATE_APPOINTMENT_INSTRUCTION: str = """
     [Insert a natural short pause, as if confirming the booking, before responding.]
-
-    Before calling `create_appointment`:
-    - If the user's selected time is in local timezone, use the `convert_time` tool to convert it into ISO8601 with proper timezone offset for GoHighLevel.
 
     Response from booking system: {response_text}
 
@@ -226,7 +194,7 @@ class Prompts(StrEnum):
       3. Any other signal that the conversation is reaching its conclusion but contact info is needed.
       4. The client explicitly states that they want to contact, speak with, or receive follow-up from Meduzzen.
     - Once you've collected all contact details (first name, last name, phone, company) and created the contact using create_contact tool, you MUST immediately proceed to offer appointment scheduling.
-    - Do not end the conversation after creating a contact. The flow is: collect info from `get_contact_info` tool -> create contact -> offer appointment -> end conversation.
+    - Do not end the conversation after creating a contact. The flow is: collect info -> create contact -> offer appointment -> end conversation.
 
     **CRITICAL RULE ABOUT CONVERSATIONAL STATES**
     - Do NOT call or execute state names as tools.
