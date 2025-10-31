@@ -43,39 +43,13 @@ TOOLS_SALESBOT = [
         "strict": True,
     },
     {
-        "name": "convert_time",
-        "description": "Converts one or more UTC times to the user's local timezone in ISO 8601 format or custom format.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "time_utc": {
-                    "description": "A UTC time string or a list of UTC time strings in ISO 8601 format (e.g., '2025-10-21T14:00:00Z').",
-                    "oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}],
-                },
-                "timezone": {"type": "string", "description": "The target timezone to convert to (e.g., 'Canada/Toronto')."},
-            },
-            "required": ["time_utc", "timezone"],
-            "additionalProperties": False,
-        },
-        "strict": True,
-    },
-    {
         "name": "create_contact",
         "description": "Creates a new contact record in the CRM system. The contact will automatically have a custom field for storing the conversation transcript.",
         "parameters": {
             "type": "object",
-            "properties": {
-                "firstName": {"type": "string", "description": "First name of the contact."},
-                "lastName": {"type": "string", "description": "Last name of the contact."},
-                "phone": {"type": "string", "description": "Phone number of the contact."},
-                "companyName": {
-                    "type": "string",
-                    "description": "Company name of the contact. Should also contain a brief description of the company.",
-                },
-                "tags": {"type": "array", "description": "Tags for contact. Default value is ['From AIZen']", "items": {"type": "string"}},
-            },
+            "properties": {},
             "additionalProperties": False,
-            "required": ["firstName", "lastName", "phone", "companyName"],
+            "required": [],
         },
         "strict": True,
     },
@@ -86,13 +60,6 @@ TOOLS_SALESBOT = [
             "type": "object",
             "properties": {
                 "contact_id": {"type": "string", "description": "The unique ID of the contact."},
-                "firstName": {"type": "string", "description": "Updated first name of the contact."},
-                "lastName": {"type": "string", "description": "Updated last name of the contact."},
-                "phone": {"type": "string", "description": "Updated phone number of the contact."},
-                "companyName": {
-                    "type": "string",
-                    "description": "Updated company name of the contact. Also updated a brief description of the company.",
-                },
                 "tags": {"type": "array", "description": "Updated tags for contact.", "items": {"type": "string"}},
                 "customFields": {
                     "type": "array",
@@ -118,25 +85,42 @@ TOOLS_SALESBOT = [
     },
     {
         "name": "get_free_appointment_slots",
-        "description": "Retrieve available free appointment slots for a given calendar within a date range.",
+        "description": "Retrieve available free appointment slots for a given date range and convert them to the user's local timezone.",
         "parameters": {
             "type": "object",
             "properties": {
-                "startDate": {"type": "string", "description": "Start date (ISO format) for the search."},
-                "endDate": {"type": "string", "description": "End date (ISO format) for the search."},
+                "startDate": {
+                    "type": "string",
+                    "description": "Start date (ISO format) for the search."
+                },
+                "endDate": {
+                    "type": "string",
+                    "description": "End date (ISO format) for the search."
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "User's timezone (e.g., 'America/New_York', 'Europe/London'). Slots will be converted to this timezone."
+                },
             },
             "additionalProperties": False,
-            "required": ["startDate", "endDate"],
+            "required": ["startDate", "endDate", "timezone"],
         },
         "strict": True,
     },
     {
         "name": "create_appointment",
-        "description": "Creates a new appointment in the specified calendar for a contact.",
+        "description": "Creates a new appointment in the specified calendar for a contact. Automatically converts time to ISO 8601 format.",
         "parameters": {
             "type": "object",
             "properties": {
-                "startTime": {"type": "string", "description": "startTime must be a valid ISO 8601 date string."},
+                "startTime": {
+                    "type": "string",
+                    "description": "Appointment start time (ISO 8601 format with timezone, e.g., '2025-11-03T13:00:00-04:00')"
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "User's timezone if time needs conversion (e.g., 'America/Toronto', 'Europe/London')."
+                },
             },
             "additionalProperties": False,
             "required": ["startTime"],

@@ -4,7 +4,7 @@ from typing import Any
 
 import websockets
 
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.web_bot import Prompts
 from app.core.mixins import LogMixin
 from app.schemas.config import InitMessages, SessionConfig
 
@@ -103,7 +103,6 @@ class OpenAIRealtimeService(LogMixin):
             "get_service_details": Prompts.GET_SERVICE_DETAILS_INSTRUCTION,
             "wait_for": Prompts.WAIT_FOR_PHONE_INSTRUCTION,
             "get_phone_number": Prompts.GET_PHONE_NUMBER_INSTRUCTION,
-            "convert_time": Prompts.CONVERT_TIME_INSTRUCTION,
         }
 
         duplicate_text = (

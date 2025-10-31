@@ -1,7 +1,8 @@
+from typing import Any
 from pydantic import BaseModel, Field
 
 from app.core import settings
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.transcription import TRANSCRIPTION_PROMPT
 
 
 class Parameter(BaseModel):
@@ -20,7 +21,7 @@ class Tool(BaseModel):
 class SessionConfig(BaseModel):
     input_audio_format: str = Field(default=settings.open_ai.INPUT_AUDIO_FORMAT)
     output_audio_format: str = Field(default=settings.open_ai.OUTPUT_AUDIO_FORMAT)
-    turn_detection: dict[str, str] = Field(default={"type": "server_vad"})
+    turn_detection: dict[str, Any] = Field(default={"type": "server_vad", "threshold": 0.7})
     voice: str = Field(default=settings.open_ai.VOICE)
     instructions: str
     modalities: list[str] = Field(default=["text", "audio"])
@@ -28,10 +29,10 @@ class SessionConfig(BaseModel):
     input_audio_transcription: dict[str, str] = Field(
         default={
             "model": settings.open_ai.TRANSCRIPTION_MODEL,
-            "prompt": Prompts.TRANSCRIPTION_PROMPT,
+            "prompt": TRANSCRIPTION_PROMPT,
         }
     )
-    input_audio_noise_reduction: dict[str, str] = Field(default={"type": "near_field"})
+    input_audio_noise_reduction: dict[str, str] = Field(default={"type": "far_field"})
     tools: list[Tool] = Field(default_factory=list)
 
 

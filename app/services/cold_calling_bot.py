@@ -2,7 +2,8 @@ from langchain_openai import ChatOpenAI
 
 from app.core.config.agent.tools import TOOLS_SALESBOT
 from app.core.config.config import settings
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.cold_calling_bot import Prompts
+from app.core.config.prompts.system_prompt import SYSTEM_PROMPT
 from app.core.config.scenarios import SCENARIOS
 from app.core.mixins import LogMixin
 from app.mock.mocked_user import mocked_user
@@ -71,7 +72,7 @@ class ColdCallingBotService(BaseBotService, LogMixin):
         scenario = await self.choose_scenario(crm_data)
 
         session_config = SessionConfig(
-            instructions=Prompts.SYSTEM_PROMPT.format(chosen_message="", chosen_question="", conversational_states="", scenario=scenario),
+            instructions=SYSTEM_PROMPT.format(chosen_message="", chosen_question="", conversational_states="", scenario=scenario),
             tools=[Tool(**tool) for tool in TOOLS_SALESBOT],
         )
 
@@ -81,7 +82,7 @@ class ColdCallingBotService(BaseBotService, LogMixin):
         if crm_data is None:
             crm_data = GetClientSchema(**mocked_user)
 
-        messages = [{"text": Prompts.COLD_BOT_INIT_MASSAGE.format(full_name=crm_data.full_name)}]
+        messages = [{"text": Prompts.COLD_BOT_INIT_MESSAGE.format(full_name=crm_data.full_name)}]
         messages = InitMessages(messages=[InitMessage(**message) for message in messages])
 
         self.openai_service.update_init_messages(messages)

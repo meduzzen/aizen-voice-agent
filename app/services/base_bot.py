@@ -8,7 +8,7 @@ import websockets
 from fastapi import WebSocket, WebSocketDisconnect
 
 from app.core.config.config import settings
-from app.core.config.prompts import Prompts
+from app.core.config.prompts.system_prompt import SYSTEM_PROMPT
 from app.core.mixins import LogMixin
 from app.schemas.config import SessionConfig
 from app.schemas.events import EventType, OpenAIEvents
@@ -53,10 +53,11 @@ class BaseBotService(AbstractBotService, LogMixin):
         self.openai_service = openai_service
         self.tool_service = tool_service
         self.gohighlevel_service = gohighlevel_service
+        self.tool_service.set_current_session(self.session_id)
 
     async def initialize_config(self) -> None:
         session_config = SessionConfig(
-            instructions=Prompts.SYSTEM_PROMPT,
+            instructions=SYSTEM_PROMPT,
             tools=[],
         )
         self.openai_service.update_session_config(session_config)
