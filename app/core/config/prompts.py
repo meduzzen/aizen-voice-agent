@@ -55,10 +55,52 @@ class Prompts(StrEnum):
     [Insert a natural short pause]
     IMPORTANT: The user said a phone number. Extract the EXACT digits they said, character by character.
     Do NOT interpret, do NOT add country codes, do NOT reformat.
-    Save the exact number as spoken.
+    Save the exact number as spoken. BUT if the user says a phone number without a +, add a + at the beginning.
     Then ask: 'You said [exact_number], correct?'
     If confirmed -> next state: `4_check_company_memory`
     If 'no' -> ask again
+    """
+    
+    EXTRACT_CONTACT_INFO: str = """
+    Extract contact information from this call transcript.
+
+    TRANSCRIPT:
+    {formatted_transcript}
+
+    EXTRACTION RULES:
+
+    For firstName and lastName:
+    - Extract ONLY if explicitly CONFIRMED by the user
+    - User must have confirmed by saying "Yes", repeating it back, or correcting themselves
+    - If mentioned multiple times, use the LAST confirmed version
+    - Do NOT include unconfirmed mentions
+
+    For phone:
+    - Extract ONLY if explicitly CONFIRMED by the user
+    - User must have confirmed by saying "Yes" or repeating the number back
+    - If mentioned multiple times, use the LAST confirmed version
+    - Do NOT include unconfirmed mentions
+
+    For companyName:
+    - Extract ANY mention of company name and description
+    - No confirmation needed - if user said it, use it
+    - If mentioned multiple times, use the LAST mention
+    - Include company name + brief description of what they do
+
+    IMPORTANT:
+    - ALL FIELDS MUST BE FILLED
+    - For name and phone: only confirmed versions
+    - For company: any mention is fine
+
+    Return: firstName, lastName, phone, companyName
+    """
+    
+    GET_CONTACT_INFO_INSTRUCTION: str = """
+    Contact information has been successfully extracted:
+    {response_text}
+
+    Now immediately call the `create_contact` tool with this exact extracted data to save the contact to the database.
+    Do NOT modify any of the values - use them exactly as provided.
     """
 
     GET_SERVICE_DETAILS_INSTRUCTION = """
@@ -79,7 +121,7 @@ class Prompts(StrEnum):
     CREATE_CONTACT_INSTRUCTION: str = """
     [Insert a natural short pause, as if checking notes, before responding.]
 
-    Before proceeding, collect the following information from the user if not already provided:
+    Before proceeding, collect the following information from the user using `get_contact_info` tool:
     - First name
     - Last name
     - Phone number
@@ -184,7 +226,7 @@ class Prompts(StrEnum):
       3. Any other signal that the conversation is reaching its conclusion but contact info is needed.
       4. The client explicitly states that they want to contact, speak with, or receive follow-up from Meduzzen.
     - Once you've collected all contact details (first name, last name, phone, company) and created the contact using create_contact tool, you MUST immediately proceed to offer appointment scheduling.
-    - Do not end the conversation after creating a contact. The flow is: collect info -> create contact -> offer appointment -> end conversation.
+    - Do not end the conversation after creating a contact. The flow is: collect info from `get_contact_info` tool -> create contact -> offer appointment -> end conversation.
 
     **CRITICAL RULE ABOUT CONVERSATIONAL STATES**
     - Do NOT call or execute state names as tools.

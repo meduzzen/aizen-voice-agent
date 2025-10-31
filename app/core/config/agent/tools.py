@@ -43,6 +43,17 @@ TOOLS_SALESBOT = [
         "strict": True,
     },
     {
+    "name": "get_contact_info",
+    "description": "Extracts contact information from the current call transcript. Extracts confirmed name and phone (must be explicitly confirmed by user) and company details from any mention.",
+    "parameters": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": False,
+        "required": [],
+    },
+    "strict": True,
+    },
+    {
         "name": "convert_time",
         "description": "Converts one or more UTC times to the user's local timezone in ISO 8601 format or custom format.",
         "parameters": {

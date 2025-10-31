@@ -104,6 +104,7 @@ class OpenAIRealtimeService(LogMixin):
             "wait_for": Prompts.WAIT_FOR_PHONE_INSTRUCTION,
             "get_phone_number": Prompts.GET_PHONE_NUMBER_INSTRUCTION,
             "convert_time": Prompts.CONVERT_TIME_INSTRUCTION,
+            "get_contact_info": Prompts.GET_CONTACT_INFO_INSTRUCTION,
         }
 
         duplicate_text = (

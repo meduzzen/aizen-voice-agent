@@ -53,6 +53,7 @@ class BaseBotService(AbstractBotService, LogMixin):
         self.openai_service = openai_service
         self.tool_service = tool_service
         self.gohighlevel_service = gohighlevel_service
+        self.tool_service.set_current_session(self.session_id)
 
     async def initialize_config(self) -> None:
         session_config = SessionConfig(

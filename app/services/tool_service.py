@@ -2,6 +2,7 @@ import re
 from asyncio import gather, sleep, to_thread
 from datetime import datetime
 from typing import Callable
+from uuid import UUID
 
 import pytz
 from langchain_openai import ChatOpenAI
@@ -9,11 +10,15 @@ from langchain_openai import ChatOpenAI
 from app.core import settings
 from app.core.config.enums import GoHighLevel
 from app.core.mixins import LogMixin
+from app.schemas.contact import ContactSchema
 from app.schemas.gohighlevel.appointment import ConvertTimeRequest
 from app.schemas.gohighlevel.contact import ContactDetail, CustomFieldSchema
 from app.services.gohighlevel.client import GoHighLevelClient
 from app.services.knowledge_base import KnowledgeBaseService
+from app.services.summary import SummaryService
 from app.services.twilio_service import TwilioService
+from app.utils.format_transcript import format_transcript
+from app.core.config.prompts import Prompts
 
 
 class ToolService(LogMixin):
@@ -22,18 +27,29 @@ class ToolService(LogMixin):
         twilio_service: TwilioService,
         knowledge_base_service: KnowledgeBaseService,
         gohighlevel_service: GoHighLevelClient,
+        summary_service: SummaryService,
         enabled_tools: list[str] | None = None,
     ) -> None:
-        self.llm = ChatOpenAI(api_key=settings.open_ai.OPENAI_API_KEY, model=settings.open_ai.CHAT_MODEL)
+        self.llm = self.get_llm()
         self.twilio_service = twilio_service
         self.knowledge_base_service = knowledge_base_service
         self.gohighlevel_service = gohighlevel_service
+        self.summary_service = summary_service
         self.last_user_phone = None
+        self.current_session_id: UUID | None = None
         self.enabled_tools = enabled_tools or [
             "get_service_details",
             "finish_the_call",
             "redirect_to_manager",
         ]
+        
+    @staticmethod
+    def get_llm():
+        llm = ChatOpenAI(model=settings.open_ai.CHAT_MODEL, api_key=settings.open_ai.OPENAI_API_KEY)
+        return llm.with_structured_output(ContactSchema)
+        
+    def set_current_session(self, session_id: UUID) -> None:
+        self.current_session_id = session_id
 
     @property
     def tool_mapping(self) -> dict[str, Callable]:
@@ -48,6 +64,7 @@ class ToolService(LogMixin):
             "wait_for": self.wait_for,
             "get_phone_number": self.get_phone_number,
             "convert_time": self.convert_time_tool,
+            "get_contact_info": self.get_contact_info,
         }
         return {k: v for k, v in mapping.items() if k in self.enabled_tools}
 
@@ -108,11 +125,38 @@ class ToolService(LogMixin):
         await sleep(seconds)
         self.log("[DEBUG] Done waiting.")
         return "wait_completed"
+    
+    async def get_contact_info(self):
+        if not self.current_session_id:
+            raise ValueError("Current session not set")
+        
+        transcript = self.summary_service.get_full_transcript(session_id=self.current_session_id)
+        
+        if not transcript:
+            raise ValueError("No transcript found for this session")
+        
+        self.log(f'TRANSCRIPT: {transcript}')
+        formatted_transcript = format_transcript(transcript)
+        
+        result = await self.llm.ainvoke(
+            Prompts.EXTRACT_CONTACT_INFO.format(formatted_transcript=formatted_transcript)
+        )
+        
+        self.log(f"EXTRACTION RESULT: {result}")
+        return result.model_dump()
 
     async def get_phone_number(self, transcript: str):
-        match = re.search(r"\+\d{9,15}", transcript)
-        if match:
-            self.last_user_phone = match.group(0)
+        cleaned = re.sub(r"[^\d+]", "", transcript)
+        
+        if not cleaned.startswith("+"):
+            digits = re.sub(r"\D", "", cleaned)
+            cleaned = f"+{digits}"
+        
+        if 9 <= len(re.sub(r"\D", "", cleaned)) <= 15:
+            self.last_user_phone = cleaned
+        else:
+            self.last_user_phone = None
+        
         return {"lastUserPhone": self.last_user_phone}
 
     @staticmethod
