@@ -30,7 +30,7 @@ class TranscriptionService(LogMixin):
 
         self.message.append(sentence)
 
-    async def proceed_llm_transcription(self, response: dict) -> AsyncGenerator[str]:
+    async def proceed_llm_transcription(self, response: dict) -> AsyncGenerator[str, None]:
         transcript = response.get("delta", "").strip()
         if transcript:
             self.sentence += " " + transcript

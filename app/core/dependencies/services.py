@@ -11,12 +11,14 @@ from app.services.knowledge_base import KnowledgeBaseService
 from app.services.openai_realtime import OpenAIRealtimeService
 from app.services.summary import SummaryService
 from app.services.twilio_service import TwilioService
+from app.services.chat_bot_service import ChatLangchainService
 
 KnowledgeBaseServiceDep = Annotated[KnowledgeBaseService, Depends(KnowledgeBaseService)]
 TwilioServiceDep = Annotated[TwilioService, Depends(TwilioService)]
 SummaryServiceDep = Annotated[SummaryService, Depends(SummaryService)]
 ElevenLabsServiceDep = Annotated[ElevenLabsService, Depends(ElevenLabsService)]
 OpenAIRealtimeDep = Annotated[OpenAIRealtimeService, Depends(OpenAIRealtimeService)]
+ChatLangchainServiceDep = Annotated[ChatLangchainService, Depends(ChatLangchainService)]
 
 
 async def get_gohighlevel_service(
